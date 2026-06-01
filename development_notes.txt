@@ -8,3 +8,4 @@
 [2026-06-01T11:35:00] chore: setup components.json layout paths
 [2026-06-01T11:55:00] chore: define eslint rules config
 [2026-06-01T13:10:00] chore: add next.js typescript type definitions
+[2026-06-01T13:40:00] chore: initialize empty README.md with title
