@@ -6,3 +6,4 @@
 [2026-06-01T10:50:00] chore: create project guidelines doc
 [2026-06-01T11:15:00] chore: setup tailwind and postcss config files
 [2026-06-01T11:35:00] chore: setup components.json layout paths
+[2026-06-01T11:55:00] chore: define eslint rules config
