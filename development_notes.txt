@@ -7,3 +7,4 @@
 [2026-06-01T11:15:00] chore: setup tailwind and postcss config files
 [2026-06-01T11:35:00] chore: setup components.json layout paths
 [2026-06-01T11:55:00] chore: define eslint rules config
+[2026-06-01T13:10:00] chore: add next.js typescript type definitions
