@@ -10,3 +10,4 @@
 [2026-06-01T13:10:00] chore: add next.js typescript type definitions
 [2026-06-01T13:40:00] chore: initialize empty README.md with title
 [2026-06-01T14:10:00] docs: list dependencies in README
+[2026-06-01T14:35:00] docs: add installation instructions to README
