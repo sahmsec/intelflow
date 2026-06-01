@@ -12,3 +12,4 @@
 [2026-06-01T14:10:00] docs: list dependencies in README
 [2026-06-01T14:35:00] docs: add installation instructions to README
 [2026-06-01T15:00:00] why the hell is windows path resolution like this
+[2026-06-01T15:30:00] chore: set up local gitignore overrides
