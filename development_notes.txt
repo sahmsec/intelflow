@@ -9,3 +9,4 @@
 [2026-06-01T11:55:00] chore: define eslint rules config
 [2026-06-01T13:10:00] chore: add next.js typescript type definitions
 [2026-06-01T13:40:00] chore: initialize empty README.md with title
+[2026-06-01T14:10:00] docs: list dependencies in README
