@@ -14,3 +14,4 @@
 [2026-06-01T15:00:00] why the hell is windows path resolution like this
 [2026-06-01T15:30:00] chore: set up local gitignore overrides
 [2026-06-01T16:05:00] chore: configure lockfile for npm packages
+[2026-06-01T16:40:00] chore: create dev environment variables skeleton
