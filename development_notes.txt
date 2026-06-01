@@ -2,3 +2,4 @@
 [2026-06-01T09:20:00] chore: add package description and scripts
 [2026-06-01T09:40:00] chore: configure typescript options
 [2026-06-01T10:05:00] chore: configure next.js compilation settings
+[2026-06-01T10:25:00] chore: create agents.md instructions
