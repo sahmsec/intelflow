@@ -19,3 +19,4 @@
 [2026-06-01T17:50:00] chore: verify installation of essential dependencies
 [2026-06-01T18:30:00] docs: end of day 1 notes, environment ready
 [2026-06-02T09:10:00] style: build global css stylesheet template
+[2026-06-02T09:35:00] style: configure custom scrollbars in globals.css
