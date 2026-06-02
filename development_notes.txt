@@ -21,3 +21,4 @@
 [2026-06-02T09:10:00] style: build global css stylesheet template
 [2026-06-02T09:35:00] style: configure custom scrollbars in globals.css
 [2026-06-02T10:00:00] feat: scaffold base root layout element
+[2026-06-02T10:25:00] feat: build base marketing page main route
