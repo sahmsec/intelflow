@@ -32,3 +32,4 @@
 [2026-06-02T15:05:00] feat: design call-to-actions buttons layout
 [2026-06-02T15:35:00] feat: define base-ui styles wrapper for dynamic items
 [2026-06-02T16:05:00] feat: add simple utility helpers for styles combination
+[2026-06-02T16:35:00] refactor: clean up tailwind margin definitions
