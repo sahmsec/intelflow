@@ -37,3 +37,4 @@
 [2026-06-02T17:40:00] feat: add typescript interfaces for store properties
 [2026-06-02T18:15:00] refactor: optimize store selector functions
 [2026-06-02T18:45:00] clerk configuration is literally driving me insane
+[2026-06-02T19:15:00] feat: add auth provider skeleton
