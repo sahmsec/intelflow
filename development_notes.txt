@@ -33,3 +33,4 @@
 [2026-06-02T15:35:00] feat: define base-ui styles wrapper for dynamic items
 [2026-06-02T16:05:00] feat: add simple utility helpers for styles combination
 [2026-06-02T16:35:00] refactor: clean up tailwind margin definitions
+[2026-06-02T17:10:00] feat: add global zustand store setup
