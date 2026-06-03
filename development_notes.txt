@@ -42,3 +42,4 @@
 [2026-06-03T09:15:00] feat: initialize database configuration
 [2026-06-03T09:40:00] feat: define primary database schema models
 [2026-06-03T10:05:00] feat: declare Workspace and Competitor models
+[2026-06-03T10:30:00] feat: declare Insight, Alert, and User tables
