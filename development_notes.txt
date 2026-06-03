@@ -54,3 +54,4 @@
 [2026-06-03T15:30:00] chore: rebuild lockfile configurations
 [2026-06-03T16:05:00] feat: add developer dev seed script mock dataset
 [2026-06-03T16:35:00] refactor: extract seed competitors parameters
+[2026-06-03T17:05:00] feat: support multiple data sources in local test seeds
