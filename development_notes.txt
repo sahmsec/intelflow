@@ -56,3 +56,4 @@
 [2026-06-03T16:35:00] refactor: extract seed competitors parameters
 [2026-06-03T17:05:00] feat: support multiple data sources in local test seeds
 [2026-06-03T17:35:00] style: apply glassmorphism style rules to button panel
+[2026-06-03T18:05:00] omg i hate react hydration errors, literally why
