@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  workspaces WorkspaceMember[]
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members     WorkspaceMember[]
+  competitors Competitor[]
+}
+
+model WorkspaceMember {
+  id          String    @id @default(cuid())
+  role        String    @default("member")
+  userId      String
+  workspaceId String
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+}
+
+model Competitor {
+  id          String   @id @default(cuid())
+  name        String
+  url         String
+  logoUrl     String?
+  industry    String?
+  riskLevel   String   @default("low") // low, moderate, critical
+  activity    String   @default("low") // low, medium, high
+  trend       String   @default("stable") // down, stable, up
+  
+  workspaceId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  insights    Insight[]
+  alerts      Alert[]
+}
+
+model Insight {
+  id            String   @id @default(cuid())
+  category      String   // threat, opportunity, neutral
+  title         String
+  content       String
+  recommendation String?
+  
+  competitorId  String
+  createdAt     DateTime @default(now())
+
+  competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+}
+
+model Alert {
+  id            String   @id @default(cuid())
+  type          String   // pending, done
+  status        String   // Pending, Reviewed
+  title         String
+  message       String?
+  
+  competitorId  String
+  createdAt     DateTime @default(now())
+
+  competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+}
