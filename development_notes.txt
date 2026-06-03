@@ -53,3 +53,4 @@
 [2026-06-03T15:00:00] why is package-lock.json diffing again? did npm drink last night?
 [2026-06-03T15:30:00] chore: rebuild lockfile configurations
 [2026-06-03T16:05:00] feat: add developer dev seed script mock dataset
+[2026-06-03T16:35:00] refactor: extract seed competitors parameters
