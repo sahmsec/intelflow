@@ -45,3 +45,4 @@
 [2026-06-03T10:30:00] feat: declare Insight, Alert, and User tables
 [2026-06-03T10:55:00] for the tenth time, prisma.config.ts goes in root, not prisma folder
 [2026-06-03T11:20:00] chore: run prisma client generation
+[2026-06-03T11:45:00] feat: build sqlite database migration files
