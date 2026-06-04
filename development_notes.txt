@@ -81,3 +81,4 @@
 [2026-06-04T18:05:00] style: adjust sidebar item active colors
 [2026-06-04T18:35:00] reverting that dumb change because it broke everything
 [2026-06-04T19:10:00] refactor: restore initial sidebar state structure
+[2026-06-04T19:40:00] docs: finish route layout mapping specifications
