@@ -78,3 +78,4 @@
 [2026-06-04T16:40:00] feat: build profile settings input page
 [2026-06-04T17:05:00] im going to throw this keyboard out the window
 [2026-06-04T17:35:00] fix: settings input margin on vertical viewports
+[2026-06-04T18:05:00] style: adjust sidebar item active colors
