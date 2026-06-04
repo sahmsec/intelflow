@@ -69,3 +69,4 @@
 [2026-06-04T11:40:00] feat: draw SVG lines dynamically on market health charts
 [2026-06-04T13:05:00] feat: build competitor list management layout
 [2026-06-04T13:30:00] feat: implement competitor details section
+[2026-06-04T13:55:00] feat: add input validation inside competitor forms
