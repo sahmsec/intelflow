@@ -72,3 +72,4 @@
 [2026-06-04T13:55:00] feat: add input validation inside competitor forms
 [2026-06-04T14:20:00] who wrote this webpack configuration? oh it was next.js
 [2026-06-04T14:50:00] feat: build AI intelligence insights layout panel
+[2026-06-04T15:20:00] feat: add type status pill filters for AI threat feeds
