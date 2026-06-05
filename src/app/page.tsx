@@ -7,10 +7,15 @@ import LiquidEther from '@/components/ui/LiquidEther';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#abbfe5] via-[#c8d7f1] to-[#dbe7f9] text-slate-800 flex flex-col font-sans overflow-x-hidden selection:bg-violet-500/20 relative">
+    <div className="min-h-screen bg-gradient-to-br from-[#7a99db] via-[#a0b3ea] to-[#cbd6f6] text-slate-800 flex flex-col font-sans overflow-x-hidden selection:bg-violet-500/20 relative">
       
+      {/* Decorative Background Blobs for depth */}
+      <div className="fixed top-[10%] left-[15%] w-[600px] h-[600px] bg-violet-500 rounded-full mix-blend-multiply filter blur-[130px] opacity-25 pointer-events-none" />
+      <div className="fixed bottom-[5%] right-[10%] w-[700px] h-[700px] bg-blue-400 rounded-full mix-blend-multiply filter blur-[150px] opacity-25 pointer-events-none" />
+      <div className="fixed top-[40%] left-[40%] w-[500px] h-[500px] bg-pink-400 rounded-full mix-blend-multiply filter blur-[120px] opacity-15 pointer-events-none" />
+
       {/* LiquidEther WebGL Background Fluid Simulation matching mock palette */}
-      <div className="fixed inset-0 w-full h-full z-0 pointer-events-none opacity-50 mix-blend-multiply">
+      <div className="fixed inset-0 w-full h-full z-0 pointer-events-none opacity-65 mix-blend-multiply">
         <LiquidEther
           colors={['#5227FF', '#FF9FFC', '#B497CF']}
           mouseForce={22}

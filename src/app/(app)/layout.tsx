@@ -30,10 +30,11 @@ export default function DashboardLayout({
   const closeMenu = () => setMobileMenuOpen(false);
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-[#abbfe5] via-[#c8d7f1] to-[#dbe7f9] text-slate-800 relative overflow-hidden font-sans">
+    <div className="flex min-h-screen bg-gradient-to-br from-[#7a99db] via-[#a0b3ea] to-[#cbd6f6] text-slate-800 relative overflow-hidden font-sans">
       {/* Decorative Background Blobs */}
-      <div className="fixed top-[15%] left-[20%] w-[500px] h-[500px] bg-violet-400 rounded-full mix-blend-multiply filter blur-[150px] opacity-15 pointer-events-none" />
-      <div className="fixed bottom-[10%] right-[15%] w-[600px] h-[600px] bg-blue-300 rounded-full mix-blend-multiply filter blur-[160px] opacity-20 pointer-events-none" />
+      <div className="fixed top-[10%] left-[15%] w-[600px] h-[600px] bg-violet-500 rounded-full mix-blend-multiply filter blur-[130px] opacity-25 pointer-events-none" />
+      <div className="fixed bottom-[5%] right-[10%] w-[700px] h-[700px] bg-blue-450 rounded-full mix-blend-multiply filter blur-[150px] opacity-25 pointer-events-none" />
+      <div className="fixed top-[40%] left-[40%] w-[500px] h-[500px] bg-pink-400 rounded-full mix-blend-multiply filter blur-[120px] opacity-15 pointer-events-none" />
 
       {/* Mobile Menu Toggle */}
       <button
