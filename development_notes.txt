@@ -92,3 +92,4 @@
 [2026-06-05T11:35:00] style: adjust quick add input focus rings
 [2026-06-05T11:55:00] fix: total tracked card floating blob animation is too laggy, up and down all the time. thats not optimized. it should not do that.
 [2026-06-05T12:15:00] fix: synchronize blob animation optimizations across workspaces
+[2026-06-05T12:35:00] fixing another dumb typo in dashboard layout. i need sleep
