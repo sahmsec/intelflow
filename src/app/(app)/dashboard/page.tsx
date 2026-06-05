@@ -3,9 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Search, Plus, ArrowUpRight, Activity, TrendingUp } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Search, Plus, ArrowUpRight, Activity, TrendingUp, RotateCw } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 
 /* ── Animated Counter ── */
@@ -43,52 +42,63 @@ const slideRight = {
 function AnimatedBar({ height, isHighlight, label, alertCount }: { height: number; isHighlight: boolean; label: string; alertCount?: number }) {
   return (
     <div className="flex flex-col items-center gap-2 flex-1">
-      <div className="w-full h-[120px] flex items-end justify-center">
+      <div className="w-full h-[130px] flex items-end justify-center">
         <motion.div
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: `${height}%`, opacity: 1 }}
           transition={{ duration: 0.8, ease: [0.34, 1.56, 0.64, 1], delay: 0.3 }}
-          className={`w-8 rounded-lg relative ${isHighlight ? 'bg-gradient-to-t from-blue-400 to-blue-500' : 'bg-white/80'}`}
+          className={`w-9 rounded-full relative ${
+            isHighlight 
+              ? 'bg-gradient-to-t from-blue-500 via-indigo-400 to-indigo-500 shadow-md shadow-indigo-500/20 border border-white/20' 
+              : 'bg-white/25 border border-white/40 shadow-sm backdrop-blur-sm'
+          }`}
         >
           {isHighlight && alertCount !== undefined && (
             <motion.div
               initial={{ opacity: 0, y: 8, scale: 0.8 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ delay: 1.2, duration: 0.4, ease: 'backOut' }}
-              className="absolute -top-[30px] left-1/2 -translate-x-1/2 bg-slate-900 text-white px-2 py-1 rounded text-xs font-semibold whitespace-nowrap"
+              className="absolute -top-[34px] left-1/2 -translate-x-1/2 bg-black text-white px-2.5 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap shadow-md shadow-black/10"
             >
               {alertCount} alerts
             </motion.div>
           )}
         </motion.div>
       </div>
-      <span className={`text-xs ${isHighlight ? 'text-slate-900 font-bold' : 'text-slate-500 font-normal'}`}>{label}</span>
+      <span className={`text-[11px] ${isHighlight ? 'text-slate-800 font-bold' : 'text-slate-500 font-normal'}`}>{label}</span>
     </div>
   );
 }
 
-/* ── Animated SVG Line ── */
+/* ── Animated SVG Line with Glow ── */
 function AnimatedLine() {
   return (
     <svg viewBox="0 0 200 80" className="w-full h-full overflow-visible">
+      <defs>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3.5" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
       <motion.path
         d="M 0 60 Q 30 60 50 30 T 100 40 T 150 10 T 200 30"
         fill="none"
         stroke="white"
-        strokeWidth="2"
+        strokeWidth="3"
         strokeLinecap="round"
+        style={{ filter: 'url(#glow)' }}
         initial={{ pathLength: 0, opacity: 0 }}
         animate={{ pathLength: 1, opacity: 1 }}
         transition={{ duration: 1.8, ease: 'easeInOut', delay: 0.5 }}
       />
       <motion.circle
-        cx="150" cy="10" r="4" fill="white"
+        cx="150" cy="10" r="4.5" fill="white"
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 1.8, duration: 0.4, ease: 'backOut' }}
       />
       <motion.text
-        x="155" y="25" fill="rgba(255,255,255,0.9)" fontSize="10"
+        x="155" y="25" fill="rgba(255,255,255,0.95)" fontSize="10" fontWeight="bold"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2, duration: 0.4 }}
@@ -112,11 +122,9 @@ function FloatingBlob({ children, delay = 0, className }: { children: React.Reac
         damping: 20, 
         delay: 0.2 + delay 
       }}
-      className={`${className} cursor-pointer transition-shadow duration-300 hover:shadow-2xl`}
+      className={`${className} cursor-pointer`}
     >
-      <div className="w-full h-full flex flex-col items-center justify-center">
-        {children}
-      </div>
+      {children}
     </motion.div>
   );
 }
@@ -150,8 +158,8 @@ export default function DashboardOverview() {
       {/* Header */}
       <motion.header variants={fadeUp} className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
-          <p className="text-slate-500 text-sm mt-1">Your competitive intelligence overview</p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-950 font-sans">IntelFlow</h1>
+          <p className="text-slate-700/80 text-sm mt-1 font-medium">Start monitoring your competitors</p>
         </div>
         <motion.div
           initial={{ opacity: 0, x: 20 }}
@@ -159,13 +167,13 @@ export default function DashboardOverview() {
           transition={{ delay: 0.4, duration: 0.5 }}
           className="flex items-center gap-3"
         >
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-slate-700 font-semibold">
             {competitors.length} competitor{competitors.length !== 1 ? 's' : ''} tracked
           </span>
           <motion.span
             animate={{ opacity: [1, 0.6, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="text-xs px-3 py-1 bg-emerald-500/10 text-emerald-600 rounded-full font-semibold"
+            className="text-xs px-3.5 py-1.5 bg-emerald-500/10 text-emerald-700 rounded-full font-bold border border-emerald-500/25"
           >
             Active
           </motion.span>
@@ -180,45 +188,45 @@ export default function DashboardOverview() {
           
           {/* Total Tracked Card */}
           <motion.div variants={fadeUp}>
-            <Card className="p-8 relative overflow-hidden">
+            <Card className="glass-card p-8 relative overflow-hidden border-none shadow-[0_20px_50px_-12px_rgba(30,41,59,0.03)]">
               <div className="flex justify-between items-start relative z-10">
                 <div>
-                  <p className="text-slate-500 text-sm mb-2 font-medium">Total tracked</p>
-                  <h2 className="text-5xl font-bold tracking-tight text-slate-900 leading-none">
+                  <p className="text-slate-650 text-xs font-bold tracking-wider uppercase mb-1">Total tracked</p>
+                  <h2 className="text-5xl font-extrabold tracking-tight text-slate-950 leading-none">
                     <AnimatedNumber value={activeCount} />
                   </h2>
                 </div>
-                <div className="flex gap-2">
-                  <span className="text-xs font-semibold px-3 py-1 bg-white/80 rounded-full border border-white">PRO</span>
-                  <span className="text-xs font-semibold px-3 py-1 bg-white/50 text-slate-500 rounded-full">ENT</span>
+                <div className="flex gap-1.5 bg-white/20 p-1 rounded-full border border-white/40">
+                  <span className="text-[10px] font-bold px-3 py-1 bg-white/70 text-slate-800 rounded-full shadow-sm">PRO</span>
+                  <span className="text-[10px] font-bold px-3 py-1 text-slate-600 rounded-full">ENT</span>
                 </div>
               </div>
 
               {/* Floating Blobs Container */}
-              <div className="relative h-[140px] mt-6 z-0 flex items-center justify-start pl-5 hidden sm:flex">
-                <FloatingBlob delay={0} className="w-[120px] h-[120px] rounded-full bg-white/90 shadow-xl shadow-slate-200/50 absolute left-0 z-30 border border-white">
-                  <span className="font-bold text-xl"><AnimatedNumber value={activeCount} /></span>
-                  <span className="text-xs text-slate-500">Active</span>
+              <div className="relative h-[150px] mt-8 z-0 flex items-center justify-start pl-2 hidden sm:flex">
+                <FloatingBlob delay={0} className="w-[125px] h-[125px] rounded-full glass-sphere absolute left-0 z-30 flex flex-col items-center justify-center">
+                  <span className="font-extrabold text-2xl text-slate-800 leading-tight"><AnimatedNumber value={activeCount} /></span>
+                  <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Active</span>
                 </FloatingBlob>
                 
-                <FloatingBlob delay={0.15} className="w-[140px] h-[140px] rounded-full bg-gradient-to-br from-violet-400 to-violet-600 shadow-xl shadow-violet-500/30 absolute left-[90px] z-20">
-                  <span className="font-bold text-2xl text-white"><AnimatedNumber value={criticalCount} /></span>
-                  <span className="text-xs text-white/80">Critical</span>
+                <FloatingBlob delay={0.15} className="w-[145px] h-[145px] rounded-full glass-sphere-glow absolute left-[90px] z-20 flex flex-col items-center justify-center">
+                  <span className="font-extrabold text-3xl text-white leading-tight"><AnimatedNumber value={criticalCount} /></span>
+                  <span className="text-[11px] text-white/80 font-semibold uppercase tracking-wider">Critical</span>
                 </FloatingBlob>
 
-                <FloatingBlob delay={0.3} className="w-[120px] h-[120px] rounded-full bg-white/90 shadow-xl shadow-slate-200/50 absolute left-[200px] z-10 border border-white">
-                  <span className="font-bold text-xl">0</span>
-                  <span className="text-xs text-slate-500">Dormant</span>
+                <FloatingBlob delay={0.3} className="w-[125px] h-[125px] rounded-full glass-sphere absolute left-[200px] z-10 flex flex-col items-center justify-center">
+                  <span className="font-extrabold text-2xl text-slate-800 leading-tight">0</span>
+                  <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Dormant</span>
                 </FloatingBlob>
 
                 <motion.div
                   initial={{ opacity: 0, x: 30 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.6, duration: 0.5 }}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-40"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-45"
                 >
-                  <Link href="/competitors" className="rounded-full px-6 py-3 bg-white/80 text-slate-900 font-medium text-sm text-center hover:bg-white transition-colors shadow-sm">Add Competitor</Link>
-                  <Link href="/reports" className="rounded-full px-6 py-3 bg-slate-900 text-white font-medium text-sm text-center hover:bg-slate-800 transition-colors shadow-sm">View Report</Link>
+                  <Link href="/competitors" className="glass-btn-transparent rounded-full px-6 py-2.5 font-bold text-xs text-center text-slate-800 border border-white/85 transition-all">Add Competitor</Link>
+                  <Link href="/reports" className="glass-btn-solid rounded-full px-6 py-2.5 font-bold text-xs text-center border border-white/10 transition-all">View Report</Link>
                 </motion.div>
               </div>
             </Card>
@@ -227,12 +235,12 @@ export default function DashboardOverview() {
           {/* Charts Row */}
           <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Activity Statistic */}
-            <Card className="p-6">
+            <Card className="glass-card p-6 border-none shadow-[0_20px_50px_-12px_rgba(30,41,59,0.03)]">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-sm font-semibold">Activity statistic</h3>
-                <span className="text-xs px-3 py-1 bg-white/80 rounded-full">Weekly</span>
+                <h3 className="text-sm font-bold text-slate-800">Activity statistic</h3>
+                <span className="text-[11px] font-semibold px-3 py-1.5 bg-white/50 border border-white/60 text-slate-700 rounded-full">Weekly</span>
               </div>
-              <div className="flex items-end gap-2">
+              <div className="flex items-end gap-2 h-[130px] mt-6">
                 {barData.map((bar, i) => (
                   <AnimatedBar key={i} height={bar.h} isHighlight={i === 2} label={bar.label} alertCount={i === 2 ? alerts.length : undefined} />
                 ))}
@@ -241,27 +249,27 @@ export default function DashboardOverview() {
 
             {/* Market Health */}
             <motion.div whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}>
-              <Card className="p-6 bg-gradient-to-br from-blue-400 to-blue-500 border-none rounded-3xl text-white shadow-xl shadow-blue-500/20">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-sm font-medium text-white/90">Market health</h3>
+              <Card className="p-6 bg-gradient-to-br from-[#3d70f6] to-[#7766ef] border-none rounded-[32px] text-white shadow-xl shadow-indigo-500/25">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-sm font-semibold text-white/90">Market health</h3>
                   <motion.div
                     animate={{ rotate: [0, 360] }}
                     transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-                    className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center"
+                    className="w-8 h-8 rounded-full bg-white/20 border border-white/10 flex items-center justify-center cursor-pointer"
                   >
                     <Activity size={14} />
                   </motion.div>
                 </div>
                 <div>
-                  <h2 className="text-3xl font-bold leading-none">
+                  <h2 className="text-4xl font-extrabold leading-none">
                     <AnimatedNumber value={85} />%
                   </h2>
-                  <div className="flex items-center gap-1 mt-1">
-                    <TrendingUp size={14} className="text-white/80" />
-                    <p className="text-xs text-white/70">+3.2% since last month</p>
+                  <div className="flex items-center gap-1 mt-1.5">
+                    <TrendingUp size={14} className="text-white/85" />
+                    <p className="text-xs text-white/80 font-medium">+3.2% since last month</p>
                   </div>
                 </div>
-                <div className="h-[80px] mt-4 relative">
+                <div className="h-[90px] mt-4 relative">
                   <AnimatedLine />
                 </div>
               </Card>
@@ -271,8 +279,8 @@ export default function DashboardOverview() {
           {/* Recent Movements */}
           <motion.div variants={fadeUp} className="flex flex-col gap-4 mt-4">
             <div className="flex justify-between items-center px-2">
-              <h3 className="text-base font-semibold">Recent Movements</h3>
-              <Link href="/insights" className="px-4 py-1.5 text-xs bg-slate-900 text-white rounded-lg font-medium">
+              <h3 className="text-base font-bold text-slate-800">Recent Movements</h3>
+              <Link href="/insights" className="px-4 py-2 text-xs bg-slate-950 text-white rounded-xl font-bold border border-white/10 hover:bg-slate-900 transition-colors">
                 View All
               </Link>
             </div>
@@ -281,12 +289,12 @@ export default function DashboardOverview() {
               const comp = competitors.find(c => c.id === insight.competitorId);
               return (
                 <motion.div key={insight.id} variants={slideRight} whileHover={{ x: 4, transition: { duration: 0.15 } }}>
-                  <Card className="p-4 px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-white/80 transition-colors">
+                  <Card className="glass-card p-4 px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-white/50 border-none transition-all shadow-[0_10px_25px_-5px_rgba(30,41,59,0.02)]">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center font-bold text-sm text-slate-900 border border-slate-100 shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-white border border-white flex items-center justify-center font-extrabold text-sm text-slate-800 shrink-0 shadow-sm">
                         {comp ? comp.logo : '?'}
                       </div>
-                      <span className="font-semibold text-sm truncate pr-4">
+                      <span className="font-bold text-sm text-slate-850 truncate pr-4">
                         {insight.title}
                       </span>
                     </div>
@@ -297,9 +305,9 @@ export default function DashboardOverview() {
                           transition={{ duration: 2, repeat: Infinity }}
                           className={`w-1.5 h-1.5 rounded-full ${insight.category === 'threat' ? 'bg-red-500' : insight.category === 'opportunity' ? 'bg-emerald-500' : 'bg-slate-500'}`}
                         />
-                        <span className="text-slate-500 text-xs capitalize font-medium">{insight.category}</span>
+                        <span className="text-slate-600 text-xs capitalize font-bold">{insight.category}</span>
                       </div>
-                      <span className="text-xs px-2.5 py-1 bg-white/80 text-slate-500 rounded-full font-medium border border-slate-100">
+                      <span className="text-xs px-3 py-1 bg-white/60 border border-white/70 text-slate-600 rounded-full font-semibold">
                         {insight.time}
                       </span>
                     </div>
@@ -314,16 +322,17 @@ export default function DashboardOverview() {
         {/* Right Column */}
         <motion.div variants={fadeUp} className="flex flex-col gap-8">
           
-          <div>
+          {/* Latest Alerts */}
+          <Card className="glass-card p-6 border-none shadow-[0_20px_50px_-12px_rgba(30,41,59,0.03)]">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-lg font-semibold tracking-tight">Latest Alerts</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Recent competitor updates</p>
+                <h2 className="text-base font-bold text-slate-850">Latest Alerts</h2>
+                <p className="text-xs text-slate-500 mt-0.5 font-medium">Recent competitor updates</p>
               </div>
               {alerts.length > 0 && (
-                <div className="flex gap-3 items-center">
-                  <Search size={18} className="text-slate-500" />
-                  <Link href="/alerts" className="px-4 py-1.5 text-xs bg-slate-900 text-white rounded-lg font-medium">
+                <div className="flex gap-2.5 items-center">
+                  <Search size={16} className="text-slate-500" />
+                  <Link href="/alerts" className="px-4 py-1.5 text-xs bg-slate-950 text-white rounded-lg font-bold border border-white/10 hover:bg-slate-900 transition-colors">
                     View All
                   </Link>
                 </div>
@@ -331,8 +340,8 @@ export default function DashboardOverview() {
             </div>
 
             {alerts.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-sm">
-                <p>No alerts yet. Add competitors to start receiving intelligence updates.</p>
+              <div className="p-8 text-center text-slate-500 text-sm">
+                <p className="font-medium">No alerts yet. Add competitors to start tracking.</p>
               </div>
             ) : (
               <div className="flex flex-col gap-4">
@@ -343,18 +352,20 @@ export default function DashboardOverview() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + idx * 0.1, duration: 0.4 }}
                     whileHover={{ x: 4 }}
-                    className="flex items-center justify-between py-2 cursor-pointer"
+                    className="flex items-center justify-between py-2 border-b border-white/10 last:border-none cursor-pointer"
                   >
-                    <div className="flex items-center gap-3 w-2/5">
-                      <div className="w-8 h-8 rounded-full bg-white/60 border border-white flex items-center justify-center">
-                        <ArrowUpRight size={14} className="text-slate-500" />
+                    <div className="flex items-center gap-3 w-[45%]">
+                      <div className="w-8 h-8 rounded-full bg-white/40 border border-white/60 flex items-center justify-center shadow-sm">
+                        <ArrowUpRight size={14} className="text-slate-600" />
                       </div>
-                      <span className="font-medium text-sm truncate">{item.name}</span>
+                      <span className="font-bold text-sm text-slate-800 truncate">{item.name}</span>
                     </div>
-                    <span className="text-xs text-slate-500 w-1/5">{item.date}</span>
-                    <div className="w-1/5 text-right">
-                      <span className={`text-[11px] font-semibold px-3 py-1 rounded-full ${
-                        item.type === 'pending' ? 'bg-blue-400 text-white' : 'bg-white/80 text-slate-500 border border-white'
+                    <span className="text-xs text-slate-500 w-[25%] font-medium">{item.date}</span>
+                    <div className="w-[30%] text-right">
+                      <span className={`text-[10px] font-bold px-3 py-1 rounded-full shadow-sm ${
+                        item.status === 'Pending' 
+                          ? 'bg-blue-500 text-white shadow-blue-500/20' 
+                          : 'bg-white/60 text-slate-600 border border-white/80'
                       }`}>
                         {item.status}
                       </span>
@@ -363,62 +374,108 @@ export default function DashboardOverview() {
                 ))}
               </div>
             )}
-          </div>
+          </Card>
 
+          {/* Quick Tips */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            className="mt-6"
+            className="px-2"
           >
-            <h3 className="text-base font-bold mb-2">How to outsmart competitors?</h3>
-            <p className="text-sm text-slate-500 leading-relaxed">
+            <h3 className="text-base font-bold text-slate-850 mb-2">How to outsmart competitors?</h3>
+            <p className="text-sm text-slate-600 leading-relaxed font-medium">
               View these useful tips to strengthen your market positioning.<br />
-              <Link href="/insights" className="text-slate-900 underline font-semibold mt-1 inline-block">Learn more</Link>
+              <Link href="/insights" className="text-slate-900 underline font-extrabold mt-1.5 inline-block">Learn more</Link>
             </p>
           </motion.div>
 
+          {/* Quick Add / Quick Transfer component */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9, duration: 0.5 }}
           >
-            <Card className="p-6 mt-4">
+            <Card className="glass-card p-6 border-none shadow-[0_20px_50px_-12px_rgba(30,41,59,0.03)]">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-sm font-semibold">Quick add</h3>
-                <div className="flex gap-2">
-                  <span className="text-xs text-blue-500 font-medium">All</span>
-                  <span className="text-xs px-2 py-0.5 bg-white/80 rounded-full text-slate-500">Suggested</span>
+                <h3 className="text-sm font-bold text-slate-800">Quick add</h3>
+                <div className="flex gap-1 bg-white/20 p-0.5 rounded-full border border-white/40">
+                  <span className="text-[10px] font-bold px-2 py-0.5 bg-white/70 text-slate-800 rounded-full shadow-sm">All</span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 text-slate-600 rounded-full">Suggested</span>
                 </div>
               </div>
               
-              <div className="flex gap-4 items-center mb-8">
-                <div className="flex flex-col items-center gap-2">
+              {/* Avatars Row - matching Quick Transfer avatar layout */}
+              <div className="flex gap-4 items-center justify-start mb-6 overflow-x-auto py-1">
+                {/* Column 1: Add new / Plus */}
+                <div className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0" onClick={() => document.getElementById('quick-add-input')?.focus()}>
                   <motion.div
-                    whileHover={{ scale: 1.1, borderColor: '#7C3AED' }}
+                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-12 h-12 rounded-full border border-dashed border-slate-400 flex items-center justify-center cursor-pointer transition-colors"
+                    className="w-12 h-12 rounded-full border border-dashed border-slate-500/60 bg-white/20 flex items-center justify-center shadow-sm"
                   >
-                    <Plus size={20} className="text-slate-500" />
+                    <Plus size={18} className="text-slate-650" />
                   </motion.div>
-                  <span className="text-[11px] font-semibold">Add new</span>
+                  <span className="text-[10px] font-bold text-slate-500">Add new</span>
                 </div>
-                
-                <div className="flex-1">
-                  <input 
-                    type="text" 
-                    value={newCompetitorName}
-                    onChange={(e) => setNewCompetitorName(e.target.value)}
-                    placeholder="Competitor Name"
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
-                    onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
-                  />
+
+                {/* Column 2: Acme */}
+                <div className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0" onClick={() => setNewCompetitorName('Acme Corp')}>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="w-12 h-12 rounded-full bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center shadow-sm text-indigo-700 font-extrabold text-sm"
+                  >
+                    A
+                  </motion.div>
+                  <span className="text-[10px] font-bold text-slate-600">Acme</span>
+                </div>
+
+                {/* Column 3: Globex */}
+                <div className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0" onClick={() => setNewCompetitorName('Globex Inc')}>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shadow-sm text-emerald-700 font-extrabold text-sm"
+                  >
+                    G
+                  </motion.div>
+                  <span className="text-[10px] font-bold text-slate-600">Globex</span>
+                </div>
+
+                {/* Column 4: Soylent */}
+                <div className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0" onClick={() => setNewCompetitorName('Soylent Corp')}>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="w-12 h-12 rounded-full bg-amber-500/20 border border-amber-400/40 flex items-center justify-center shadow-sm text-amber-700 font-extrabold text-sm"
+                  >
+                    S
+                  </motion.div>
+                  <span className="text-[10px] font-bold text-slate-600">Soylent</span>
                 </div>
               </div>
 
+              <div className="flex gap-3 items-center mb-6">
+                <input 
+                  id="quick-add-input"
+                  type="text" 
+                  value={newCompetitorName}
+                  onChange={(e) => setNewCompetitorName(e.target.value)}
+                  placeholder="Enter Competitor Name"
+                  className="flex-1 px-4 py-2.5 rounded-2xl bg-white/20 border border-white/50 focus:bg-white/40 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm font-semibold text-slate-800 placeholder-slate-500"
+                  onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
+                />
+              </div>
+
               <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold tracking-tight">Tracking</span>
-                <Button variant="primary" className="rounded-full px-6" onClick={handleQuickAdd}>Track</Button>
+                <span className="text-xl font-extrabold tracking-tight text-slate-800">Tracking</span>
+                <button 
+                  onClick={handleQuickAdd}
+                  className="glass-btn-solid rounded-full px-6 py-2.5 font-bold text-xs border border-white/10 hover:shadow-lg transition-all"
+                >
+                  Track
+                </button>
               </div>
             </Card>
           </motion.div>

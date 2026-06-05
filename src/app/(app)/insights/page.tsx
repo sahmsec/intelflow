@@ -18,9 +18,9 @@ export default function InsightsPage() {
 
   const getCategoryIcon = (category: string) => {
     switch(category) {
-      case 'threat': return <ShieldAlert className="w-5 h-5 text-red-500" />;
-      case 'opportunity': return <Lightbulb className="w-5 h-5 text-emerald-500" />;
-      default: return <BarChart3 className="w-5 h-5 text-blue-500" />;
+      case 'threat': return <ShieldAlert className="w-5 h-5 text-red-600" />;
+      case 'opportunity': return <Lightbulb className="w-5 h-5 text-emerald-600" />;
+      default: return <BarChart3 className="w-5 h-5 text-blue-600" />;
     }
   };
 
@@ -28,30 +28,32 @@ export default function InsightsPage() {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl">
       <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">AI Insights Center</h1>
-          <p className="text-slate-500">Strategic recommendations generated automatically.</p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-950 font-sans mb-1">AI Insights Center</h1>
+          <p className="text-slate-700/80 font-medium">Strategic recommendations generated automatically.</p>
         </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-8">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4" />
+          <Search className="absolute left-3.5 top-3 text-slate-500 w-4 h-4" />
           <input 
             type="text"
             placeholder="Search insights..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-white rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none"
+            className="w-full pl-10 pr-4 py-2.5 bg-white/20 rounded-xl border border-white/50 text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none text-slate-800 placeholder-slate-500 backdrop-blur-md"
           />
         </div>
-        <div className="flex gap-2 bg-slate-200/50 p-1 rounded-lg">
+        <div className="flex gap-1 bg-white/20 p-1 rounded-xl border border-white/40">
           {['all', 'threat', 'opportunity'].map((cat) => (
             <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`px-4 py-1.5 text-xs font-medium rounded-md capitalize transition-colors ${
-                filter === cat ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+              className={`px-4 py-1.5 text-xs font-bold rounded-lg capitalize transition-all ${
+                filter === cat 
+                  ? 'bg-white/80 text-slate-800 shadow-sm border border-white/90' 
+                  : 'text-slate-650 hover:text-slate-850 hover:bg-white/10'
               }`}
             >
               {cat}
@@ -70,42 +72,47 @@ export default function InsightsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
             >
-              <Card className="p-6 border-l-4 overflow-hidden relative group" style={{
-                borderLeftColor: insight.category === 'threat' ? '#ef4444' : insight.category === 'opportunity' ? '#10b981' : '#3b82f6'
-              }}>
+              <Card 
+                className="glass-card p-6 border-none overflow-hidden relative group shadow-[0_15px_35px_-5px_rgba(30,41,59,0.02)]" 
+                style={{
+                  borderLeft: `5px solid ${insight.category === 'threat' ? '#ef4444' : insight.category === 'opportunity' ? '#10b981' : '#3b82f6'}`,
+                  borderRadius: '28px'
+                }}
+              >
                 <div className="flex items-start gap-4">
                   <div className={`p-3 rounded-xl mt-1 shrink-0 ${
-                    insight.category === 'threat' ? 'bg-red-50 text-red-600' : 
-                    insight.category === 'opportunity' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'
+                    insight.category === 'threat' ? 'bg-red-500/10 text-red-700 border border-red-500/15' : 
+                    insight.category === 'opportunity' ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/15' : 
+                    'bg-blue-500/10 text-blue-700 border border-blue-500/15'
                   }`}>
                     {getCategoryIcon(insight.category)}
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start mb-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold px-2 py-0.5 rounded-full border bg-slate-50 border-slate-200 text-slate-600">
+                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-white/60 border-white/80 text-slate-600 shadow-sm">
                           {comp ? comp.name : 'Unknown'}
                         </span>
-                        <h3 className="font-bold text-lg text-slate-900">{insight.title}</h3>
+                        <h3 className="font-extrabold text-base text-slate-900 leading-tight">{insight.title}</h3>
                       </div>
-                      <div className="flex items-center gap-1 text-slate-400 text-xs">
-                        <Clock className="w-3 h-3" />
+                      <div className="flex items-center gap-1 text-slate-500 text-xs font-semibold shrink-0">
+                        <Clock className="w-3.5 h-3.5" />
                         {insight.time}
                       </div>
                     </div>
                     
-                    <p className="text-slate-600 text-sm leading-relaxed mb-4">
+                    <p className="text-slate-700/90 text-sm leading-relaxed mb-4 font-medium">
                       {insight.content}
                     </p>
 
                     {insight.recommendation && (
-                      <div className="bg-violet-50/50 border border-violet-100 rounded-lg p-4">
-                        <h4 className="text-xs font-bold text-violet-800 uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <div className="bg-violet-500/10 border border-violet-500/25 rounded-2xl p-4 mt-3">
+                        <h4 className="text-xs font-bold text-violet-750 uppercase tracking-wider mb-2 flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-violet-600"></span>
                           Action Recommended
                         </h4>
-                        <p className="text-sm text-violet-900 leading-relaxed">
+                        <p className="text-sm text-violet-900 font-semibold leading-relaxed">
                           {insight.recommendation}
                         </p>
                       </div>
@@ -114,8 +121,8 @@ export default function InsightsPage() {
                 </div>
                 
                 <div className="absolute right-4 bottom-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-slate-900">
-                    Dismiss <ArrowRight className="w-3 h-3" />
+                  <button className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">
+                    Dismiss <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </Card>
@@ -124,7 +131,7 @@ export default function InsightsPage() {
         })}
 
         {filteredInsights.length === 0 && (
-          <div className="py-12 text-center text-slate-500">
+          <div className="py-12 text-center text-slate-600 font-medium">
             No insights found for the selected criteria.
           </div>
         )}

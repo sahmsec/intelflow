@@ -26,7 +26,7 @@ export default function CompetitorsPage() {
 
   const getTrendIcon = (trend: string) => {
     switch(trend) {
-      case 'up': return <TrendingUp className="w-4 h-4 text-emerald-500" />;
+      case 'up': return <TrendingUp className="w-4 h-4 text-emerald-600" />;
       case 'down': return <TrendingDown className="w-4 h-4 text-red-500" />;
       default: return <Minus className="w-4 h-4 text-slate-400" />;
     }
@@ -36,43 +36,52 @@ export default function CompetitorsPage() {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-6xl">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">Competitors</h1>
-          <p className="text-slate-500">Track and manage your competitive landscape.</p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-950 font-sans mb-1">Competitors</h1>
+          <p className="text-slate-700/80 font-medium">Track and manage your competitive landscape.</p>
         </div>
-        <Button variant="primary" onClick={() => setIsAdding(!isAdding)} className="rounded-full">
-          <Plus className="w-4 h-4 mr-2" /> Add Competitor
-        </Button>
+        <button 
+          onClick={() => setIsAdding(!isAdding)} 
+          className="glass-btn-solid rounded-full px-6 py-2.5 font-bold text-xs flex items-center gap-2 border border-white/10"
+        >
+          <Plus className="w-4 h-4" /> Add Competitor
+        </button>
       </div>
 
       {isAdding && (
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-8">
-          <Card className="p-6 border-violet-200 shadow-violet-100">
-            <h3 className="font-semibold mb-4">Track a new competitor</h3>
+          <Card className="glass-card p-6 border-none shadow-[0_20px_50px_-12px_rgba(30,41,59,0.03)]">
+            <h3 className="font-bold text-base text-slate-800 mb-4">Track a new competitor</h3>
             <div className="flex flex-col sm:flex-row gap-4">
               <input 
                 placeholder="Company Name (e.g. Acme Corp)" 
                 value={newName} onChange={e => setNewName(e.target.value)}
-                className="flex-1 px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-white/20 border border-white/50 focus:bg-white/40 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm font-semibold text-slate-800 placeholder-slate-500"
               />
               <input 
                 placeholder="Website URL (e.g. acme.com)" 
                 value={newUrl} onChange={e => setNewUrl(e.target.value)}
-                className="flex-1 px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-white/20 border border-white/50 focus:bg-white/40 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm font-semibold text-slate-800 placeholder-slate-500"
               />
-              <Button variant="primary" onClick={handleAdd} disabled={!newName || !newUrl}>Start Tracking</Button>
+              <button 
+                onClick={handleAdd} 
+                disabled={!newName || !newUrl}
+                className="glass-btn-solid rounded-xl px-6 py-2.5 font-bold text-xs disabled:opacity-50 disabled:pointer-events-none"
+              >
+                Start Tracking
+              </button>
             </div>
           </Card>
         </motion.div>
       )}
 
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-3 text-slate-400 w-5 h-5" />
+      <div className="relative mb-8">
+        <Search className="absolute left-3.5 top-3.5 text-slate-500 w-5 h-5" />
         <input 
           type="text"
           placeholder="Search competitors..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 bg-white rounded-xl border border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          className="w-full pl-11 pr-4 py-3.5 bg-white/20 rounded-2xl border border-white/50 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 placeholder-slate-500 font-semibold backdrop-blur-md"
         />
       </div>
 
@@ -84,42 +93,42 @@ export default function CompetitorsPage() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: idx * 0.05 }}
           >
-            <Card className="overflow-hidden group hover:border-violet-300 transition-colors">
+            <Card className="glass-card border-none hover:bg-white/55 transition-all shadow-[0_15px_35px_-5px_rgba(30,41,59,0.02)] group overflow-hidden">
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
-                  <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center font-bold text-lg text-slate-700 border border-slate-200">
+                  <div className="w-12 h-12 bg-white/60 rounded-xl flex items-center justify-center font-extrabold text-lg text-slate-800 border border-white/80 shadow-sm">
                     {comp.logo}
                   </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
+                  <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button className="p-2 hover:bg-white/60 rounded-lg text-slate-600 transition-colors border border-transparent hover:border-white/40">
                       <ExternalLink className="w-4 h-4" />
                     </button>
-                    <button onClick={() => removeCompetitor(comp.id)} className="p-2 hover:bg-red-50 hover:text-red-600 rounded-lg text-slate-500 transition-colors">
+                    <button onClick={() => removeCompetitor(comp.id)} className="p-2 hover:bg-red-50/50 hover:text-red-600 rounded-lg text-slate-600 transition-colors border border-transparent hover:border-white/40">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
                 
-                <h3 className="font-bold text-lg text-slate-900">{comp.name}</h3>
-                <p className="text-sm text-slate-500 mb-6">{comp.url}</p>
+                <h3 className="font-extrabold text-lg text-slate-850">{comp.name}</h3>
+                <p className="text-sm text-slate-500 font-medium mb-6">{comp.url}</p>
 
-                <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                <div className="flex justify-between items-center pt-4 border-t border-white/20">
                   <div className="flex flex-col gap-1">
-                    <span className="text-[11px] text-slate-400 uppercase font-semibold">Risk</span>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      comp.risk === 'critical' ? 'bg-red-100 text-red-700' : 
-                      comp.risk === 'moderate' ? 'bg-amber-100 text-amber-700' : 
-                      'bg-emerald-100 text-emerald-700'
+                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Risk</span>
+                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full shadow-sm ${
+                      comp.risk === 'critical' ? 'bg-red-500/10 text-red-700 border border-red-500/15' : 
+                      comp.risk === 'moderate' ? 'bg-amber-500/10 text-amber-700 border border-amber-500/15' : 
+                      'bg-emerald-500/10 text-emerald-700 border border-emerald-500/15'
                     }`}>
                       {comp.risk}
                     </span>
                   </div>
                   
                   <div className="flex flex-col gap-1 items-end">
-                    <span className="text-[11px] text-slate-400 uppercase font-semibold">Trend</span>
-                    <div className="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
+                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Trend</span>
+                    <div className="flex items-center gap-1 bg-white/40 px-2.5 py-0.5 rounded-full border border-white/70 shadow-sm">
                       {getTrendIcon(comp.trend)}
-                      <span className="text-xs font-medium text-slate-600 capitalize">{comp.trend}</span>
+                      <span className="text-xs font-bold text-slate-700 capitalize">{comp.trend}</span>
                     </div>
                   </div>
                 </div>
@@ -129,7 +138,7 @@ export default function CompetitorsPage() {
         ))}
 
         {filtered.length === 0 && (
-          <div className="col-span-full py-12 text-center text-slate-500">
+          <div className="col-span-full py-12 text-center text-slate-600 font-medium">
             No competitors found matching "{search}".
           </div>
         )}
