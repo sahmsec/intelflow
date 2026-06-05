@@ -84,3 +84,4 @@
 [2026-06-04T19:40:00] docs: finish route layout mapping specifications
 [2026-06-05T09:05:00] style: refine button border gradients
 [2026-06-05T09:25:00] feat: add mock checkout system plans routing
+[2026-06-05T09:45:00] refactor: clean unused imports in layout pages
