@@ -86,3 +86,4 @@
 [2026-06-05T09:25:00] feat: add mock checkout system plans routing
 [2026-06-05T09:45:00] refactor: clean unused imports in layout pages
 [2026-06-05T10:05:00] fix: chart label display error on low resolution screens
+[2026-06-05T10:25:00] style: update alerts notifications text formatting
