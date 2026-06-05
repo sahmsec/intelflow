@@ -95,3 +95,4 @@
 [2026-06-05T12:35:00] fixing another dumb typo in dashboard layout. i need sleep
 [2026-06-05T12:50:00] chore: configure sqlite env variable hooks
 [2026-06-05T13:00:00] docs: update deployment guidelines for mock auth configurations
+[2026-06-05T13:05:00] style: increase sidebar glass blur filter opacity
