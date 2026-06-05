@@ -94,3 +94,4 @@
 [2026-06-05T12:15:00] fix: synchronize blob animation optimizations across workspaces
 [2026-06-05T12:35:00] fixing another dumb typo in dashboard layout. i need sleep
 [2026-06-05T12:50:00] chore: configure sqlite env variable hooks
+[2026-06-05T13:00:00] docs: update deployment guidelines for mock auth configurations
