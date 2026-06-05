@@ -9,7 +9,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#abbfe5] via-[#c8d7f1] to-[#dbe7f9] text-slate-800 flex flex-col font-sans overflow-x-hidden selection:bg-violet-500/20 relative">
       
-      {/* LiquidEther WebGL Background Fluid Simulation */}
+      {/* LiquidEther WebGL Background Fluid Simulation matching mock palette */}
       <div className="fixed inset-0 w-full h-full z-0 pointer-events-none opacity-50 mix-blend-multiply">
         <LiquidEther
           colors={['#5227FF', '#FF9FFC', '#B497CF']}
