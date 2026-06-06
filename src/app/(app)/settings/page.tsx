@@ -828,7 +828,7 @@ function SettingsContent() {
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col gap-6">
               
               {/* Expired alert */}
-              {subscription.trialDaysLeft === 0 && (
+              {subscription.plan !== 'Free' && subscription.trialDaysLeft === 0 && (
                 <div className="p-4 bg-red-500/15 dark:bg-red-500/20 border border-red-500/30 dark:border-red-500/25 rounded-2xl flex items-start gap-3 shadow-md">
                   <ShieldAlert className="w-6 h-6 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
                   <div>

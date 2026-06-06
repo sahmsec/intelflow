@@ -185,7 +185,7 @@ export default function DashboardOverview() {
       className="text-slate-800 dark:text-slate-100"
     >
       {/* Expiry alerts */}
-      {subscription.trialDaysLeft === 0 && (
+      {subscription.plan !== 'Free' && subscription.trialDaysLeft === 0 && (
         <div className="mb-6 p-4 bg-red-500/15 border border-red-500/30 rounded-2xl flex items-center justify-between shadow-md">
           <div className="flex items-center gap-2.5">
             <span className="flex h-2 w-2 rounded-full bg-red-500 animate-ping shrink-0"></span>
