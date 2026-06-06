@@ -48,3 +48,6 @@ next-env.d.ts
 
 # scripts
 git_history.js
+
+# local binaries
+/stripe.exe

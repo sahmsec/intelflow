@@ -16,10 +16,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    const initialTheme = savedTheme || systemTheme;
-    setTheme(initialTheme);
+    const isDark = window.document.documentElement.classList.contains('dark');
+    setTheme(isDark ? 'dark' : 'light');
     setMounted(true);
   }, []);
 

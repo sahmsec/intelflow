@@ -12,10 +12,10 @@ export default function AlertsPage() {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl">
       <div className="mb-8 flex justify-between items-end">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-950 font-sans mb-1">Alerts</h1>
-          <p className="text-slate-700/80 font-medium">Real-time notifications for tracked competitors.</p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white font-sans mb-1">Alerts</h1>
+          <p className="text-slate-700/80 dark:text-slate-350 font-medium">Real-time notifications for tracked competitors.</p>
         </div>
-        <button className="hidden sm:flex glass-btn-transparent rounded-full px-5 py-2 font-bold text-xs border border-white/80">
+        <button className="hidden sm:flex glass-btn-transparent rounded-full px-5 py-2 font-bold text-xs border border-white/80 dark:border-white/10 dark:text-slate-300">
           Mark all as read
         </button>
       </div>
@@ -29,25 +29,27 @@ export default function AlertsPage() {
             transition={{ delay: idx * 0.05 }}
           >
             <Card className={`glass-card p-5 border-none flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-[0_15px_35px_-5px_rgba(30,41,59,0.02)] ${
-              alert.type === 'pending' ? 'bg-white/60 hover:bg-white/70' : 'bg-white/30 hover:bg-white/40'
+              alert.type === 'pending' 
+                ? 'bg-white/60 hover:bg-white/70 dark:bg-white/10 dark:hover:bg-white/15' 
+                : 'bg-white/30 hover:bg-white/40 dark:bg-white/5 dark:hover:bg-white/10'
             }`}>
               <div className="flex items-center gap-4 flex-1">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${
                   alert.type === 'pending' 
-                    ? 'bg-violet-500/10 text-violet-700 border-violet-500/15' 
-                    : 'bg-white/50 text-slate-500 border-white/60'
+                    ? 'bg-violet-500/10 dark:bg-violet-500/20 text-violet-700 dark:text-violet-400 border-violet-500/15 dark:border-violet-500/25' 
+                    : 'bg-white/50 dark:bg-white/5 text-slate-500 dark:text-slate-400 border-white/60 dark:border-white/10'
                 }`}>
                   <Bell className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-extrabold text-sm text-slate-850">{alert.name}</span>
-                    <span className="w-1 h-1 rounded-full bg-slate-400" />
-                    <span className="text-xs text-slate-500 font-semibold flex items-center gap-1">
+                    <span className="font-extrabold text-sm text-slate-850 dark:text-white">{alert.name}</span>
+                    <span className="w-1 h-1 rounded-full bg-slate-400 dark:bg-slate-600" />
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" /> {alert.date}
                     </span>
                   </div>
-                  <p className={`text-sm font-medium ${alert.type === 'pending' ? 'text-slate-800' : 'text-slate-600'}`}>
+                  <p className={`text-sm font-medium ${alert.type === 'pending' ? 'text-slate-800 dark:text-slate-200' : 'text-slate-600 dark:text-slate-400'}`}>
                     New activity detected on website
                   </p>
                 </div>
@@ -57,7 +59,7 @@ export default function AlertsPage() {
                 <span className={`text-[10px] font-bold px-3 py-1 rounded-full shadow-sm uppercase tracking-wider ${
                   alert.type === 'pending' 
                     ? 'bg-blue-500 text-white shadow-blue-500/20' 
-                    : 'bg-white/70 text-slate-600 border border-white/80'
+                    : 'bg-white/70 dark:bg-white/10 text-slate-600 dark:text-slate-300 border border-white/80 dark:border-white/10'
                 }`}>
                   {alert.status}
                 </span>
@@ -65,7 +67,7 @@ export default function AlertsPage() {
                 {alert.type === 'pending' && (
                   <button 
                     onClick={() => markAlertReviewed(alert.id)}
-                    className="flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 px-3 py-1.5 rounded-lg transition-colors"
+                    className="flex items-center gap-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/30 border border-emerald-500/20 dark:border-emerald-500/30 px-3 py-1.5 rounded-lg transition-colors"
                   >
                     <Check className="w-3.5 h-3.5" /> Review
                   </button>
@@ -76,7 +78,7 @@ export default function AlertsPage() {
         ))}
 
         {alerts.length === 0 && (
-          <div className="py-12 text-center text-slate-650 font-bold bg-white/25 backdrop-blur-md rounded-[28px] border border-white/40 border-dashed shadow-sm">
+          <div className="py-12 text-center text-slate-500 dark:text-slate-400 font-bold bg-white/25 dark:bg-white/5 backdrop-blur-md rounded-[28px] border border-white/40 dark:border-white/10 border-dashed shadow-sm">
             You're all caught up. No new alerts.
           </div>
         )}

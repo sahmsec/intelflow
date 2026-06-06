@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext } from 'react';
+import { authClient } from '@/lib/auth-client';
 
 type User = {
   id: string;
@@ -28,43 +29,28 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const { data: session, isPending } = authClient.useSession();
 
-  useEffect(() => {
-    // Mock loading state
-    const timer = setTimeout(() => {
-      // Auto-login mock user for dev
-      setIsSignedIn(true);
-      setUser({
-        id: 'usr_mock123',
-        name: 'Demo User',
-        email: 'demo@intelflow.app',
-        imageUrl: 'https://ui-avatars.com/api/?name=Demo+User&background=7C3AED&color=fff',
-      });
-      setIsLoaded(true);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
+  const user: User | null = session?.user
+    ? {
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+        imageUrl: session.user.image || undefined,
+      }
+    : null;
 
-  const signOut = () => {
-    setIsSignedIn(false);
-    setUser(null);
+  const signOut = async () => {
+    await authClient.signOut();
+    window.location.href = '/login';
   };
 
   const signIn = () => {
-    setIsSignedIn(true);
-    setUser({
-      id: 'usr_mock123',
-      name: 'Demo User',
-      email: 'demo@intelflow.app',
-      imageUrl: 'https://ui-avatars.com/api/?name=Demo+User&background=7C3AED&color=fff',
-    });
+    window.location.href = '/login';
   };
 
   return (
-    <AuthContext.Provider value={{ isLoaded, isSignedIn, user, signOut, signIn }}>
+    <AuthContext.Provider value={{ isLoaded: !isPending, isSignedIn: !!session, user, signOut, signIn }}>
       {children}
     </AuthContext.Provider>
   );

@@ -90,6 +90,24 @@ export default function LiquidEther({
     const paletteTex = makePaletteTexture(colors);
     const bgVec4 = new THREE.Vector4(0, 0, 0, 0); // always transparent
 
+    // Safe THREE.Timer helper with custom high-precision fallback
+    let TimerClass: any = (THREE as any).Timer;
+    if (!TimerClass) {
+      TimerClass = class {
+        private lastTime: number = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        private delta: number = 0;
+        update() {
+          const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+          this.delta = (now - this.lastTime) / 1000;
+          if (this.delta > 0.1) this.delta = 0.1; // cap frame delta to avoid sudden jumps
+          this.lastTime = now;
+        }
+        getDelta() {
+          return this.delta;
+        }
+      };
+    }
+
     class CommonClass {
       width: number = 0;
       height: number = 0;
@@ -103,7 +121,7 @@ export default function LiquidEther({
       delta: number = 0;
       container: HTMLDivElement | null = null;
       renderer: THREE.WebGLRenderer | null = null;
-      clock: THREE.Clock | null = null;
+      timer: any = null;
 
       init(container: HTMLDivElement) {
         this.container = container;
@@ -117,8 +135,7 @@ export default function LiquidEther({
         this.renderer.domElement.style.width = '100%';
         this.renderer.domElement.style.height = '100%';
         this.renderer.domElement.style.display = 'block';
-        this.clock = new THREE.Clock();
-        this.clock.start();
+        this.timer = new TimerClass();
       }
       resize() {
         if (!this.container) return;
@@ -129,8 +146,9 @@ export default function LiquidEther({
         if (this.renderer) this.renderer.setSize(this.width, this.height, false);
       }
       update() {
-        if (this.clock) {
-          this.delta = this.clock.getDelta();
+        if (this.timer) {
+          this.timer.update();
+          this.delta = this.timer.getDelta();
           this.time += this.delta;
         }
       }
@@ -148,13 +166,7 @@ export default function LiquidEther({
       listenerTarget: Window | any = null;
       isHoverInside: boolean = false;
       hasUserControl: boolean = false;
-      isAutoActive: boolean = false;
       autoIntensity: number = 2.0;
-      takeoverActive: boolean = false;
-      takeoverStartTime: number = 0;
-      takeoverDuration: number = 0.25;
-      takeoverFrom: THREE.Vector2 = new THREE.Vector2();
-      takeoverTo: THREE.Vector2 = new THREE.Vector2();
       onInteract: (() => void) | null = null;
       _onMouseMove: any;
       _onTouchStart: any;
@@ -222,27 +234,9 @@ export default function LiquidEther({
           this.mouseMoved = false;
         }, 100);
       }
-      setNormalized(nx: number, ny: number) {
-        this.coords.set(nx, ny);
-        this.mouseMoved = true;
-      }
       onDocumentMouseMove(event: MouseEvent) {
         if (!this.updateHoverState(event.clientX, event.clientY)) return;
         if (this.onInteract) this.onInteract();
-        if (this.isAutoActive && !this.hasUserControl && !this.takeoverActive) {
-          if (!this.container) return;
-          const rect = this.container.getBoundingClientRect();
-          if (rect.width === 0 || rect.height === 0) return;
-          const nx = (event.clientX - rect.left) / rect.width;
-          const ny = (event.clientY - rect.top) / rect.height;
-          this.takeoverFrom.copy(this.coords);
-          this.takeoverTo.set(nx * 2 - 1, -(ny * 2 - 1));
-          this.takeoverStartTime = performance.now();
-          this.takeoverActive = true;
-          this.hasUserControl = true;
-          this.isAutoActive = false;
-          return;
-        }
         this.setCoords(event.clientX, event.clientY);
         this.hasUserControl = true;
       }
@@ -268,22 +262,9 @@ export default function LiquidEther({
         this.isHoverInside = false;
       }
       update() {
-        if (this.takeoverActive) {
-          const t = (performance.now() - this.takeoverStartTime) / (this.takeoverDuration * 1000);
-          if (t >= 1) {
-            this.takeoverActive = false;
-            this.coords.copy(this.takeoverTo);
-            this.coords_old.copy(this.coords);
-            this.diff.set(0, 0);
-          } else {
-            const k = t * t * (3 - 2 * t);
-            this.coords.copy(this.takeoverFrom).lerp(this.takeoverTo, k);
-          }
-        }
         this.diff.subVectors(this.coords, this.coords_old);
         this.coords_old.copy(this.coords);
         if (this.coords_old.x === 0 && this.coords_old.y === 0) this.diff.set(0, 0);
-        if (this.isAutoActive && !this.takeoverActive) this.diff.multiplyScalar(this.autoIntensity);
       }
     }
     const Mouse = new MouseClass();
@@ -297,6 +278,8 @@ export default function LiquidEther({
       rampDurationMs: number;
       active: boolean = false;
       current: THREE.Vector2 = new THREE.Vector2(0, 0);
+      coords_old: THREE.Vector2 = new THREE.Vector2(0, 0);
+      diff: THREE.Vector2 = new THREE.Vector2(0, 0);
       target: THREE.Vector2 = new THREE.Vector2();
       lastTime: number = performance.now();
       activationTime: number = 0;
@@ -316,33 +299,13 @@ export default function LiquidEther({
         const r = Math.random;
         this.target.set((r() * 2 - 1) * (1 - this.margin), (r() * 2 - 1) * (1 - this.margin));
       }
-      forceStop() {
-        this.active = false;
-        this.mouse.isAutoActive = false;
-      }
       update() {
         if (!this.enabled) return;
         const now = performance.now();
-        const idle = now - this.manager.lastUserInteraction;
-        if (idle < this.resumeDelay) {
-          if (this.active) this.forceStop();
-          return;
-        }
-        if (this.mouse.isHoverInside) {
-          if (this.active) this.forceStop();
-          return;
-        }
-        if (!this.active) {
-          this.active = true;
-          this.current.copy(this.mouse.coords);
-          this.lastTime = now;
-          this.activationTime = now;
-        }
-        if (!this.active) return;
-        this.mouse.isAutoActive = true;
         let dtSec = (now - this.lastTime) / 1000;
         this.lastTime = now;
         if (dtSec > 0.2) dtSec = 0.016;
+
         const dir = this._tmpDir.subVectors(this.target, this.current);
         const dist = dir.length();
         if (dist < 0.01) {
@@ -350,15 +313,13 @@ export default function LiquidEther({
           return;
         }
         dir.normalize();
-        let ramp = 1;
-        if (this.rampDurationMs > 0) {
-          const t = Math.min(1, (now - this.activationTime) / this.rampDurationMs);
-          ramp = t * t * (3 - 2 * t);
-        }
-        const step = this.speed * dtSec * ramp;
+
+        const step = this.speed * dtSec;
         const move = Math.min(step, dist);
         this.current.addScaledVector(dir, move);
-        this.mouse.setNormalized(this.current.x, this.current.y);
+
+        this.diff.subVectors(this.current, this.coords_old);
+        this.coords_old.copy(this.current);
       }
     }
 
@@ -546,7 +507,7 @@ export default function LiquidEther({
         this.props = props || {};
         this.uniforms = this.props.material?.uniforms;
       }
-      init() {
+      init(..._args: any[]) {
         this.scene = new THREE.Scene();
         this.camera = new THREE.Camera();
         if (this.uniforms) {
@@ -556,11 +517,10 @@ export default function LiquidEther({
           this.scene.add(this.plane);
         }
       }
-      update() {
+      update(..._args: any[]) {
         if (Common.renderer && this.scene && this.camera) {
           Common.renderer.setRenderTarget(this.props.output || null);
           Common.renderer.render(this.scene, this.camera);
-          Common.renderer.setRenderTarget(null);
         }
       }
     }
@@ -613,15 +573,18 @@ export default function LiquidEther({
     }
 
     class ExternalForce extends ShaderPass {
-      mouse: THREE.Mesh | any;
+      userMouseMesh: THREE.Mesh | any;
+      autoMouseMesh: THREE.Mesh | any;
       constructor(simProps: any) {
         super({ output: simProps.dst });
         this.init(simProps);
       }
       init(simProps: any) {
         super.init();
-        const mouseG = new THREE.PlaneGeometry(1, 1);
-        const mouseM = new THREE.RawShaderMaterial({
+        const geometry = new THREE.PlaneGeometry(1, 1);
+
+        // 1. User Mouse Mesh
+        const userMaterial = new THREE.RawShaderMaterial({
           vertexShader: mouse_vert,
           fragmentShader: externalForce_frag,
           blending: THREE.AdditiveBlending,
@@ -633,26 +596,78 @@ export default function LiquidEther({
             scale: { value: new THREE.Vector2(simProps.cursor_size, simProps.cursor_size) }
           }
         });
-        this.mouse = new THREE.Mesh(mouseG, mouseM);
-        if (this.scene) this.scene.add(this.mouse);
+        this.userMouseMesh = new THREE.Mesh(geometry, userMaterial);
+        if (this.scene) this.scene.add(this.userMouseMesh);
+
+        // 2. Auto Driver Mesh
+        const autoMaterial = new THREE.RawShaderMaterial({
+          vertexShader: mouse_vert,
+          fragmentShader: externalForce_frag,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          uniforms: {
+            px: { value: simProps.cellScale },
+            force: { value: new THREE.Vector2(0.0, 0.0) },
+            center: { value: new THREE.Vector2(0.0, 0.0) },
+            scale: { value: new THREE.Vector2(simProps.cursor_size, simProps.cursor_size) }
+          }
+        });
+        this.autoMouseMesh = new THREE.Mesh(geometry, autoMaterial);
+        if (this.scene) this.scene.add(this.autoMouseMesh);
       }
       update(props: any) {
-        const forceX = (Mouse.diff.x / 2) * props.mouse_force;
-        const forceY = (Mouse.diff.y / 2) * props.mouse_force;
+        // user mesh update
+        let forceX_user = (Mouse.diff.x / 2) * props.mouse_force;
+        let forceY_user = (Mouse.diff.y / 2) * props.mouse_force;
+        
+        if (!Mouse.hasUserControl || !Mouse.isHoverInside) {
+          forceX_user = 0;
+          forceY_user = 0;
+        }
+
         const cursorSizeX = props.cursor_size * props.cellScale.x;
         const cursorSizeY = props.cursor_size * props.cellScale.y;
-        const centerX = Math.min(
+
+        const centerX_user = Math.min(
           Math.max(Mouse.coords.x, -1 + cursorSizeX + props.cellScale.x * 2),
           1 - cursorSizeX - props.cellScale.x * 2
         );
-        const centerY = Math.min(
+        const centerY_user = Math.min(
           Math.max(Mouse.coords.y, -1 + cursorSizeY + props.cellScale.y * 2),
           1 - cursorSizeY - props.cellScale.y * 2
         );
-        const uniforms = this.mouse.material.uniforms;
-        uniforms.force.value.set(forceX, forceY);
-        uniforms.center.value.set(centerX, centerY);
-        uniforms.scale.value.set(props.cursor_size, props.cursor_size);
+
+        const userUniforms = this.userMouseMesh.material.uniforms;
+        userUniforms.force.value.set(forceX_user, forceY_user);
+        userUniforms.center.value.set(centerX_user, centerY_user);
+        userUniforms.scale.value.set(props.cursor_size, props.cursor_size);
+
+        // auto mesh update
+        let forceX_auto = 0;
+        let forceY_auto = 0;
+        let centerX_auto = 0;
+        let centerY_auto = 0;
+
+        const autoDriver = (Common as any).autoDriver;
+        if (autoDriver && autoDriver.enabled) {
+          forceX_auto = (autoDriver.diff.x / 2) * props.mouse_force * Mouse.autoIntensity;
+          forceY_auto = (autoDriver.diff.y / 2) * props.mouse_force * Mouse.autoIntensity;
+
+          centerX_auto = Math.min(
+            Math.max(autoDriver.current.x, -1 + cursorSizeX + props.cellScale.x * 2),
+            1 - cursorSizeX - props.cellScale.x * 2
+          );
+          centerY_auto = Math.min(
+            Math.max(autoDriver.current.y, -1 + cursorSizeY + props.cellScale.y * 2),
+            1 - cursorSizeY - props.cellScale.y * 2
+          );
+        }
+
+        const autoUniforms = this.autoMouseMesh.material.uniforms;
+        autoUniforms.force.value.set(forceX_auto, forceY_auto);
+        autoUniforms.center.value.set(centerX_auto, centerY_auto);
+        autoUniforms.scale.value.set(props.cursor_size, props.cursor_size);
+
         super.update();
       }
     }
@@ -999,11 +1014,9 @@ export default function LiquidEther({
         Common.init(props.$wrapper);
         Mouse.init(props.$wrapper);
         Mouse.autoIntensity = props.autoIntensity;
-        Mouse.takeoverDuration = props.takeoverDuration;
         this.lastUserInteraction = performance.now();
         Mouse.onInteract = () => {
           this.lastUserInteraction = performance.now();
-          if (this.autoDriver) this.autoDriver.forceStop();
         };
         this.autoDriver = new AutoDriver(Mouse, this, {
           enabled: props.autoDemo,
@@ -1011,6 +1024,7 @@ export default function LiquidEther({
           resumeDelay: props.autoResumeDelay,
           rampDuration: props.autoRampDuration
         });
+        (Common as any).autoDriver = this.autoDriver;
         this.init();
         this._loop = this.loop.bind(this);
         this._resize = this.resize.bind(this);
@@ -1209,7 +1223,6 @@ export default function LiquidEther({
       webgl.autoDriver.rampDurationMs = autoRampDuration * 1000;
       if (webgl.autoDriver.mouse) {
         webgl.autoDriver.mouse.autoIntensity = autoIntensity;
-        webgl.autoDriver.mouse.takeoverDuration = takeoverDuration;
       }
     }
     if (resolution !== prevRes) {
