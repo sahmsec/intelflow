@@ -83,6 +83,7 @@ export default function ReportsPage() {
   const [genStepIndex, setGenStepIndex] = useState(0);
   const [newReportId, setNewReportId] = useState('');
   const [apiReportContent, setApiReportContent] = useState('');
+  const [apiReportId, setApiReportId] = useState('');
 
   // Copy success feedback state
   const [copied, setCopied] = useState(false);
@@ -132,13 +133,14 @@ Our automated intelligence scanner has analyzed public digital signals for **${c
 
       const finalContent = apiReportContent || fallbackContent;
 
-      updateReportStatus(newReportId, 'ready', finalContent);
-      setSelectedReportId(newReportId);
+      updateReportStatus(newReportId, 'ready', finalContent, apiReportId);
+      setSelectedReportId(apiReportId || newReportId);
       setIsGenerating(false);
       setGenStepIndex(0);
       setApiReportContent('');
+      setApiReportId('');
     }
-  }, [isGenerating, genStepIndex, apiReportContent, generationMode]);
+  }, [isGenerating, genStepIndex, apiReportContent, apiReportId, generationMode]);
 
   const handleGenerateReport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,6 +171,7 @@ Our automated intelligence scanner has analyzed public digital signals for **${c
     setIsGenerating(true);
     setGenStepIndex(0);
     setApiReportContent('');
+    setApiReportId('');
 
     try {
       const res = await fetch("/api/reports/generate", {
@@ -188,6 +191,7 @@ Our automated intelligence scanner has analyzed public digital signals for **${c
       if (res.ok) {
         const data = await res.json();
         setApiReportContent(data.content);
+        setApiReportId(data.id);
       } else {
         const errorData = await res.json().catch(() => ({}));
         console.error("Report generation failed:", errorData.error);
@@ -196,6 +200,7 @@ Our automated intelligence scanner has analyzed public digital signals for **${c
       console.error("API error during report generation:", err);
     }
   };
+
 
   const handleCopyReport = (content: string) => {
     navigator.clipboard.writeText(content);

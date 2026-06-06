@@ -326,7 +326,24 @@ Based on recent updates, this competitor is showing **${activityLevel}** activit
 *(Note: Stored AI API Keys were not active. Configure your OpenAI or Gemini key under Settings > AI Providers to generate real-time dynamic AI reports).*`;
     }
 
-    return new Response(JSON.stringify({ content, provider: actualProviderUsed }), {
+    // 5. Save report to database
+    const dbReport = await db.report.create({
+      data: {
+        title: `${reportType} - ${competitorName}`,
+        competitorName,
+        type: reportType,
+        status: "ready",
+        content,
+        competitorId,
+      },
+    });
+
+    return new Response(JSON.stringify({ 
+      id: dbReport.id,
+      content: dbReport.content, 
+      date: "Just now",
+      provider: actualProviderUsed 
+    }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
@@ -338,3 +355,4 @@ Based on recent updates, this competitor is showing **${activityLevel}** activit
     });
   }
 }
+

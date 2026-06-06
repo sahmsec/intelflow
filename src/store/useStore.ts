@@ -45,6 +45,7 @@ export type Report = {
   date: string;
   status: 'generating' | 'ready';
   content?: string;
+  competitorId?: string;
 };
 
 export type Subscription = {
@@ -91,10 +92,11 @@ interface IntelFlowState {
   defaultModel: string;
   
   // Actions
-  addCompetitor: (name: string, url: string, country?: string) => void;
-  removeCompetitor: (id: string) => void;
+  addCompetitor: (name: string, url: string, country?: string) => Promise<void>;
+  removeCompetitor: (id: string) => Promise<void>;
   addInsight: (insight: Omit<Insight, 'id'>) => void;
-  markAlertReviewed: (id: string) => void;
+  markAlertReviewed: (id: string) => Promise<void>;
+  syncWithDatabase: () => Promise<void>;
   
   // Settings Actions
   updateWorkspaceSettings: (name: string, tz: string) => void;
@@ -114,8 +116,8 @@ interface IntelFlowState {
   
   // Report Actions
   addReport: (report: Omit<Report, 'id'>) => string;
-  updateReportStatus: (id: string, status: 'generating' | 'ready', content?: string) => void;
-  removeReport: (id: string) => void;
+  updateReportStatus: (id: string, status: 'generating' | 'ready', content?: string, dbId?: string) => void;
+  removeReport: (id: string) => Promise<void>;
   
   // Dev Helper Actions
   fastForwardTrial: (days: number) => void;
@@ -151,38 +153,89 @@ export const useStore = create<IntelFlowState>()(
       defaultProvider: 'gemini',
       defaultModel: 'gemini-1.5-flash',
       
-      addCompetitor: (name, url, country) => set((state) => {
-        const newCompetitor: Competitor = {
-          id: `c${Date.now()}`,
-          name,
-          url,
-          activity: 'low',
-          trend: 'stable',
-          risk: 'low',
-          logo: name.charAt(0).toUpperCase(),
-          country: country || 'global',
-        };
-        return { competitors: [...state.competitors, newCompetitor] };
-      }),
+      syncWithDatabase: async () => {
+        try {
+          const [compRes, reportRes, insightRes, alertRes] = await Promise.all([
+            fetch("/api/competitors"),
+            fetch("/api/reports"),
+            fetch("/api/insights"),
+            fetch("/api/alerts"),
+          ]);
 
-      removeCompetitor: (id) => set((state) => {
-        const comp = state.competitors.find(c => c.id === id);
-        return {
-          competitors: state.competitors.filter(c => c.id !== id),
-          insights: state.insights.filter(i => i.competitorId !== id),
-          alerts: comp ? state.alerts.filter(a => a.name !== comp.name) : state.alerts,
-        };
-      }),
+          if (compRes.ok && reportRes.ok && insightRes.ok && alertRes.ok) {
+            const [competitors, reports, insights, alerts] = await Promise.all([
+              compRes.json(),
+              reportRes.json(),
+              insightRes.json(),
+              alertRes.json(),
+            ]);
+
+            set({ competitors, reports, insights, alerts });
+          }
+        } catch (err) {
+          console.error("Failed to sync store with database:", err);
+        }
+      },
+
+      addCompetitor: async (name, url, country) => {
+        try {
+          const res = await fetch("/api/competitors", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, url, country }),
+          });
+          if (res.ok) {
+            const newComp = await res.json();
+            set((state) => ({ competitors: [newComp, ...state.competitors] }));
+          }
+        } catch (err) {
+          console.error("Failed to add competitor:", err);
+        }
+      },
+
+      removeCompetitor: async (id) => {
+        try {
+          const res = await fetch(`/api/competitors?id=${id}`, {
+            method: "DELETE",
+          });
+          if (res.ok) {
+            set((state) => {
+              const comp = state.competitors.find(c => c.id === id);
+              return {
+                competitors: state.competitors.filter(c => c.id !== id),
+                insights: state.insights.filter(i => i.competitorId !== id),
+                reports: state.reports.filter(r => r.competitorId !== id),
+                alerts: comp ? state.alerts.filter(a => a.name !== comp.name) : state.alerts,
+              };
+            });
+          }
+        } catch (err) {
+          console.error("Failed to delete competitor:", err);
+        }
+      },
 
       addInsight: (insight) => set((state) => ({
         insights: [{ id: `i${Date.now()}`, ...insight }, ...state.insights]
       })),
 
-      markAlertReviewed: (id) => set((state) => ({
-        alerts: state.alerts.map(a => 
-          a.id === id ? { ...a, status: 'Reviewed', type: 'done' } : a
-        )
-      })),
+      markAlertReviewed: async (id) => {
+        try {
+          const res = await fetch("/api/alerts", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, status: "Reviewed", type: "done" }),
+          });
+          if (res.ok) {
+            set((state) => ({
+              alerts: state.alerts.map(a => 
+                a.id === id ? { ...a, status: 'Reviewed', type: 'done' } : a
+              )
+            }));
+          }
+        } catch (err) {
+          console.error("Failed to mark alert reviewed:", err);
+        }
+      },
       
       updateWorkspaceSettings: (name, tz) => set(() => ({
         workspaceName: name,
@@ -245,15 +298,26 @@ export const useStore = create<IntelFlowState>()(
         return id;
       },
       
-      updateReportStatus: (id, status, content) => set((state) => ({
+      updateReportStatus: (id, status, content, dbId) => set((state) => ({
         reports: state.reports.map(r => 
-          r.id === id ? { ...r, status, ...(content ? { content } : {}) } : r
+          r.id === id ? { ...r, status, ...(content ? { content } : {}), ...(dbId ? { id: dbId } : {}) } : r
         )
       })),
       
-      removeReport: (id) => set((state) => ({
-        reports: state.reports.filter(r => r.id !== id)
-      })),
+      removeReport: async (id) => {
+        try {
+          const res = await fetch(`/api/reports?id=${id}`, {
+            method: "DELETE",
+          });
+          if (res.ok) {
+            set((state) => ({
+              reports: state.reports.filter(r => r.id !== id)
+            }));
+          }
+        } catch (err) {
+          console.error("Failed to delete report:", err);
+        }
+      },
       
       fastForwardTrial: (days) => set((state) => {
         const newDays = Math.max(0, state.subscription.trialDaysLeft - days);
@@ -268,6 +332,19 @@ export const useStore = create<IntelFlowState>()(
     }),
     {
       name: 'intelflow-storage',
+      partialize: (state) => ({
+        workspaceName: state.workspaceName,
+        timezone: state.timezone,
+        subscription: state.subscription,
+        connectedSlack: state.connectedSlack,
+        slackChannel: state.slackChannel,
+        connectedHubspot: state.connectedHubspot,
+        apiKeys: state.apiKeys,
+        defaultGenerationMode: state.defaultGenerationMode,
+        defaultProvider: state.defaultProvider,
+        defaultModel: state.defaultModel,
+      }),
     }
   )
 );
+

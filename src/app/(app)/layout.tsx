@@ -34,10 +34,14 @@ export default function DashboardLayout({
   useEffect(() => {
     const syncWorkspace = async () => {
       try {
+        // Sync competitors, reports, alerts, and insights from the database
+        useStore.getState().syncWithDatabase();
+
         // Intercept checkout success parameters to prevent race conditions
         const searchParams = new URLSearchParams(window.location.search);
         const isSuccess = searchParams.get('checkout') === 'success';
         const successPlan = searchParams.get('plan');
+
         
         if (isSuccess && successPlan) {
           await fetch('/api/workspace', {

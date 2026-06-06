@@ -107,6 +107,7 @@ model Competitor {
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   insights    Insight[]
   alerts      Alert[]
+  reports     Report[]
 }
 
 model Insight {
@@ -134,3 +135,20 @@ model Alert {
 
   competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 }
+
+model Report {
+  id             String     @id @default(cuid())
+  title          String
+  competitorName String
+  type           String
+  date           String     @default("Just now")
+  status         String     @default("generating") // "generating" | "ready"
+  content        String?    @db.Text
+  
+  competitorId   String
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  competitor     Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+}
+
