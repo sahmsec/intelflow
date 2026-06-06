@@ -17,7 +17,10 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { competitorId, reportType, apiKey, provider } = body;
+    const { competitorId, reportType, apiKey: clientApiKey, provider: clientProvider } = body;
+
+    const apiKey = clientApiKey || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
+    const provider = clientProvider || (process.env.GEMINI_API_KEY ? "gemini" : process.env.OPENAI_API_KEY ? "openai" : undefined);
 
     if (!competitorId || !reportType) {
       return new Response(JSON.stringify({ error: "Competitor ID and report type are required" }), {

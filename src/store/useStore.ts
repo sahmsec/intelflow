@@ -126,45 +126,11 @@ export const useStore = create<IntelFlowState>()(
         status: 'active',
         planSelected: false,
       },
-      competitors: [
-        { id: 'c1', name: 'Acme Corp', url: 'acme.com', activity: 'high', trend: 'up', risk: 'critical', logo: 'A' },
-        { id: 'c2', name: 'Globex', url: 'globex.com', activity: 'medium', trend: 'stable', risk: 'moderate', logo: 'G' },
-        { id: 'c3', name: 'Soylent', url: 'soylent.com', activity: 'low', trend: 'down', risk: 'low', logo: 'S' },
-      ],
-      insights: [
-        {
-          id: 'i1',
-          category: 'threat',
-          title: 'Acme Corp is targeting Enterprise',
-          content: 'Acme Corp updated their pricing page today, introducing a new "Custom Enterprise" tier with SSO and Dedicated Account Management. This indicates a strategic shift upmarket.',
-          recommendation: 'Review our Enterprise sales collateral and highlight our superior compliance certifications.',
-          time: '2h ago',
-          competitorId: 'c1'
-        },
-        {
-          id: 'i2',
-          category: 'opportunity',
-          title: 'Globex scaling back marketing',
-          content: 'Globex has reduced their active Google Ads spend by an estimated 40% over the last two weeks, and removed 3 marketing roles from their careers page.',
-          recommendation: 'Increase bid caps on shared keywords. We have a 2-week window to capture their lost impression share.',
-          time: '5h ago',
-          competitorId: 'c2'
-        }
-      ],
-      alerts: [
-        { id: 'a1', name: 'Acme Corp', date: 'Just now', status: 'Pending', type: 'pending' },
-        { id: 'a2', name: 'Globex Inc', date: '2h ago', status: 'Reviewed', type: 'done' },
-        { id: 'a3', name: 'Soylent', date: '1d ago', status: 'Reviewed', type: 'done' },
-      ],
-      teamMembers: [
-        { id: 'm1', name: 'Demo User', email: 'demo@intelflow.app', role: 'owner' },
-        { id: 'm2', name: 'Sarah Connor', email: 's.connor@intelflow.app', role: 'admin' },
-        { id: 'm3', name: 'Alex Mercer', email: 'a.mercer@intelflow.app', role: 'viewer' },
-      ],
-      reports: [
-        { id: 'r1', title: 'Q2 Competitive Landscape Audit', competitorName: 'Acme Corp', type: 'Competitive Audit', date: '2 days ago', status: 'ready', content: 'Comprehensive analysis of Acme Corp positioning, product enhancements, and target customer demographics.' },
-        { id: 'r2', title: 'Feature Overlap Analysis', competitorName: 'Globex', type: 'Pricing Study', date: '5 days ago', status: 'ready', content: 'Detailed review of Globex new pricing model tiers and dynamic checkout modifications.' },
-      ],
+      competitors: [],
+      insights: [],
+      alerts: [],
+      teamMembers: [],
+      reports: [],
       connectedSlack: false,
       slackChannel: '#competitive-intel',
       connectedHubspot: false,
