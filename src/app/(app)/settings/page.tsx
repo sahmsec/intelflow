@@ -13,10 +13,10 @@ import {
 } from 'lucide-react';
 
 const AI_PROVIDERS = [
-  { id: 'openai', name: 'OpenAI', models: ['gpt-4o', 'gpt-4o-mini', 'o1-preview'], icon: 'O' },
-  { id: 'anthropic', name: 'Anthropic', models: ['claude-3-5-sonnet', 'claude-3-opus'], icon: 'A' },
-  { id: 'gemini', name: 'Google Gemini', models: ['gemini-1.5-pro', 'gemini-1.5-flash'], icon: 'G' },
-  { id: 'groq', name: 'Groq', models: ['llama-3.1-70b', 'mixtral-8x7b'], icon: 'Q' },
+  { id: 'openai', name: 'OpenAI', models: ['gpt-5.5', 'gpt-5.4', 'gpt-4o', 'gpt-4o-mini', 'o4-mini'], icon: 'O' },
+  { id: 'anthropic', name: 'Anthropic', models: ['claude-4.8-opus', 'claude-4.6-sonnet', 'claude-3-5-sonnet'], icon: 'A' },
+  { id: 'gemini', name: 'Google Gemini', models: ['gemini-3.1-pro', 'gemini-3.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'], icon: 'G' },
+  { id: 'groq', name: 'Groq', models: ['llama-4-maverick', 'llama-3.1-70b', 'mixtral-8x7b'], icon: 'Q' },
 ] as const;
 
 function SettingsContent() {
@@ -33,6 +33,9 @@ function SettingsContent() {
     slackChannel, 
     connectedHubspot, 
     apiKeys,
+    defaultGenerationMode,
+    defaultProvider,
+    defaultModel,
     updateWorkspaceSettings,
     updateSubscription,
     inviteTeamMember,
@@ -42,6 +45,7 @@ function SettingsContent() {
     connectHubspot,
     disconnectHubspot,
     saveApiKey,
+    saveGenerationPreferences,
     fastForwardTrial
   } = useStore();
 
@@ -222,6 +226,32 @@ function SettingsContent() {
     gemini: apiKeys.gemini || '',
     groq: apiKeys.groq || '',
   });
+
+  // Report Preference States
+  const [prefMode, setPrefMode] = useState<'single' | 'consensus'>(defaultGenerationMode);
+  const [prefProvider, setPrefProvider] = useState<string>(defaultProvider);
+  const [prefModel, setPrefModel] = useState<string>(defaultModel);
+  const [prefSaved, setPrefSaved] = useState(false);
+
+  useEffect(() => {
+    setPrefMode(defaultGenerationMode);
+    setPrefProvider(defaultProvider);
+    setPrefModel(defaultModel);
+  }, [defaultGenerationMode, defaultProvider, defaultModel]);
+
+  const handlePrefProviderChange = (providerId: string) => {
+    setPrefProvider(providerId);
+    const p = AI_PROVIDERS.find(p => p.id === providerId);
+    if (p && p.models.length > 0) {
+      setPrefModel(p.models[0]);
+    }
+  };
+
+  const handleSavePreferences = () => {
+    saveGenerationPreferences(prefMode, prefProvider, prefModel);
+    setPrefSaved(true);
+    setTimeout(() => setPrefSaved(false), 2000);
+  };
 
   // Slack state
   const [slackChan, setSlackChan] = useState(slackChannel);
@@ -600,6 +630,75 @@ function SettingsContent() {
                   </Card>
                 ))}
               </div>
+
+              {/* REPORT PREFERENCES */}
+              <Card className="glass-card p-6 border-none shadow-[0_15px_35px_-5px_rgba(30,41,59,0.02)] mt-6 flex flex-col gap-6">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-950 dark:text-white mb-1">Report Preferences</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Configure global defaults for newly compiled strategic reports.</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Default Generation Mode</label>
+                    <select
+                      value={prefMode}
+                      onChange={(e) => setPrefMode(e.target.value as 'single' | 'consensus')}
+                      className="w-full px-4 py-2.5 bg-white/20 dark:bg-white/10 border border-white/40 dark:border-white/20 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 dark:text-white backdrop-blur-md"
+                    >
+                      <option value="single" className="dark:bg-slate-900">Single Model (Fast)</option>
+                      <option value="consensus" className="dark:bg-slate-900">Multi-Agent Consensus (Deep)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Default AI Provider</label>
+                    <select
+                      value={prefProvider}
+                      onChange={(e) => handlePrefProviderChange(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-white/20 dark:bg-white/10 border border-white/40 dark:border-white/20 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 dark:text-white backdrop-blur-md"
+                    >
+                      {AI_PROVIDERS.map((p) => (
+                        <option key={p.id} value={p.id} className="dark:bg-slate-900">{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Default Target Model</label>
+                    <select
+                      value={prefModel}
+                      onChange={(e) => setPrefModel(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-white/20 dark:bg-white/10 border border-white/40 dark:border-white/20 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 dark:text-white backdrop-blur-md"
+                    >
+                      {(AI_PROVIDERS.find(p => p.id === prefProvider)?.models || []).map((m) => (
+                        <option key={m} value={m} className="dark:bg-slate-900">{m}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-end border-t border-white/10 pt-4 mt-2">
+                  <button
+                    onClick={handleSavePreferences}
+                    className={`rounded-xl px-6 py-2.5 font-bold text-xs border border-white/15 transition-all shadow-sm flex items-center gap-1.5 ${
+                      prefSaved
+                        ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/30 border-emerald-500/20 dark:border-emerald-500/30'
+                        : 'glass-btn-solid'
+                    }`}
+                  >
+                    {prefSaved ? (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" /> Defaults Saved
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" /> Save Default Preferences
+                      </>
+                    )}
+                  </button>
+                </div>
+              </Card>
             </motion.div>
           )}
 

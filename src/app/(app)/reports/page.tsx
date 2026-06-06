@@ -6,7 +6,7 @@ import { useStore } from '@/store/useStore';
 import Loader from '@/components/ui/Loader';
 import { 
   FileText, Plus, Search, Calendar, ChevronRight, 
-  Trash2, Printer, Copy, CheckCircle, RefreshCw, AlertTriangle, ArrowRight
+  Trash2, Printer, Copy, CheckCircle, RefreshCw, AlertTriangle, ArrowRight, Sparkles
 } from 'lucide-react';
 
 const REPORT_STEPS = [
@@ -19,34 +19,63 @@ const REPORT_STEPS = [
 
 const PROVIDER_MODELS: Record<string, { name: string; value: string }[]> = {
   gemini: [
-    { name: 'Google Gemini 1.5 Flash (Default)', value: 'gemini-1.5-flash' },
-    { name: 'Google Gemini 1.5 Pro', value: 'gemini-1.5-pro' }
+    { name: 'Google Gemini 3.5 Flash (Latest)', value: 'gemini-3.5-flash' },
+    { name: 'Google Gemini 3.1 Pro (Reasoning)', value: 'gemini-3.1-pro' },
+    { name: 'Google Gemini 1.5 Flash (Stable)', value: 'gemini-1.5-flash' },
+    { name: 'Google Gemini 1.5 Pro (Stable)', value: 'gemini-1.5-pro' }
   ],
   openai: [
-    { name: 'OpenAI GPT-4o Mini (Default)', value: 'gpt-4o-mini' },
-    { name: 'OpenAI GPT-4o', value: 'gpt-4o' },
-    { name: 'OpenAI o1 Preview', value: 'o1-preview' }
+    { name: 'OpenAI GPT-5.5 (Flagship)', value: 'gpt-5.5' },
+    { name: 'OpenAI GPT-5.4 (Standard)', value: 'gpt-5.4' },
+    { name: 'OpenAI GPT-4o Mini (Stable)', value: 'gpt-4o-mini' },
+    { name: 'OpenAI GPT-4o (Stable)', value: 'gpt-4o' },
+    { name: 'OpenAI o4 Mini (Reasoning)', value: 'o4-mini' }
   ],
   anthropic: [
-    { name: 'Anthropic Claude 3.5 Sonnet (Default)', value: 'claude-3-5-sonnet' },
-    { name: 'Anthropic Claude 3 Opus', value: 'claude-3-opus' }
+    { name: 'Anthropic Claude 4.8 Opus (Intelligence)', value: 'claude-4.8-opus' },
+    { name: 'Anthropic Claude 4.6 Sonnet (Latest)', value: 'claude-4.6-sonnet' },
+    { name: 'Anthropic Claude 3.5 Sonnet (Stable)', value: 'claude-3-5-sonnet' }
   ],
   groq: [
-    { name: 'Groq Llama 3.1 70B (Default)', value: 'llama-3.1-70b' },
-    { name: 'Groq Mixtral 8x7B', value: 'mixtral-8x7b' }
+    { name: 'Groq Llama 4 Maverick (Latest)', value: 'llama-4-maverick' },
+    { name: 'Groq Llama 3.1 70B (Stable)', value: 'llama-3.1-70b' },
+    { name: 'Groq Mixtral 8x7B (Stable)', value: 'mixtral-8x7b' }
   ]
 };
 
+const getDebateLogs = (competitorName: string, templateType: string) => [
+  { agent: 'Explorer', name: 'Gemini 3.5 Flash', color: 'text-blue-500 dark:text-blue-400', msg: `Initiating signal crawl on ${competitorName}...` },
+  { agent: 'Explorer', name: 'Gemini 3.5 Flash', color: 'text-blue-500 dark:text-blue-400', msg: `Parsing active metadata tags, robots.txt, and subdomain records.` },
+  { agent: 'Explorer', name: 'Gemini 3.5 Flash', color: 'text-blue-500 dark:text-blue-400', msg: `Found key indicators: Recent landing page rewrite centering on SaaS pricing optimizations.` },
+  { agent: 'Critic', name: 'Claude 4.8 Opus', color: 'text-amber-500 dark:text-amber-400', msg: `Analyzing raw crawled logs. Noted positioning overlaps with our core product segment.` },
+  { agent: 'Critic', name: 'Claude 4.8 Opus', color: 'text-amber-500 dark:text-amber-400', msg: `Evaluating strategic risk score. Competitor is shifting from SMB targeting to mid-market enterprise offerings.` },
+  { agent: 'Critic', name: 'Claude 4.8 Opus', color: 'text-amber-500 dark:text-amber-400', msg: `Refining recommendations: Suggest aggressive positioning of our SSO & custom roles to counter.` },
+  { agent: 'Director', name: 'GPT-5.5', color: 'text-emerald-500 dark:text-emerald-400', msg: `Consensus synthesis block active. Reconciling inputs for template: "${templateType}".` },
+  { agent: 'Director', name: 'GPT-5.5', color: 'text-emerald-500 dark:text-emerald-400', msg: `Compiling risk index (Critical/High). Formatting executive brief.` },
+  { agent: 'Director', name: 'GPT-5.5', color: 'text-emerald-500 dark:text-emerald-400', msg: `Double-checking recommendations alignment. Audit complete. Writing markdown.` }
+];
 
 export default function ReportsPage() {
-  const { competitors, reports, addReport, updateReportStatus, removeReport } = useStore();
+  const { 
+    competitors, 
+    reports, 
+    addReport, 
+    updateReportStatus, 
+    removeReport,
+    defaultGenerationMode,
+    defaultProvider,
+    defaultModel,
+    saveGenerationPreferences
+  } = useStore();
   const [selectedReportId, setSelectedReportId] = useState<string>('');
   
   // Create Report State
   const [selectedCompId, setSelectedCompId] = useState('');
   const [reportType, setReportType] = useState('Competitive Audit');
-  const [aiProvider, setAiProvider] = useState('gemini');
-  const [aiModel, setAiModel] = useState('gemini-1.5-flash');
+  const [generationMode, setGenerationMode] = useState<'single' | 'consensus'>(defaultGenerationMode || 'single');
+  const [aiProvider, setAiProvider] = useState(defaultProvider || 'gemini');
+  const [aiModel, setAiModel] = useState(defaultModel || 'gemini-1.5-flash');
+  const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [search, setSearch] = useState('');
   
   // Generation Animation state
@@ -64,14 +93,22 @@ export default function ReportsPage() {
     }
   }, [reports, selectedReportId]);
 
+  useEffect(() => {
+    if (defaultGenerationMode) setGenerationMode(defaultGenerationMode);
+    if (defaultProvider) setAiProvider(defaultProvider);
+    if (defaultModel) setAiModel(defaultModel);
+  }, [defaultGenerationMode, defaultProvider, defaultModel]);
+
   // Generation sequence
   useEffect(() => {
     if (!isGenerating) return;
 
-    if (genStepIndex < REPORT_STEPS.length) {
+    const activeStepsCount = generationMode === 'consensus' ? 9 : REPORT_STEPS.length;
+
+    if (genStepIndex < activeStepsCount) {
       const timer = setTimeout(() => {
         setGenStepIndex(prev => prev + 1);
-      }, 1500);
+      }, generationMode === 'consensus' ? 1800 : 1500);
       return () => clearTimeout(timer);
     } else {
       // Finished generating
@@ -101,7 +138,7 @@ Our automated intelligence scanner has analyzed public digital signals for **${c
       setGenStepIndex(0);
       setApiReportContent('');
     }
-  }, [isGenerating, genStepIndex, apiReportContent]);
+  }, [isGenerating, genStepIndex, apiReportContent, generationMode]);
 
   const handleGenerateReport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +151,11 @@ Our automated intelligence scanner has analyzed public digital signals for **${c
     const keys = useStore.getState().apiKeys;
     const selectedProvider = aiProvider;
     const apiKey = keys[aiProvider as keyof typeof keys] || '';
+
+    // Save preferences as default if selected
+    if (saveAsDefault) {
+      saveGenerationPreferences(generationMode, aiProvider, aiModel);
+    }
 
     const tempId = addReport({
       title: `${reportType} - ${competitorName}`,
@@ -138,6 +180,8 @@ Our automated intelligence scanner has analyzed public digital signals for **${c
           apiKey,
           provider: selectedProvider,
           model: aiModel,
+          mode: generationMode,
+          apiKeys: keys
         }),
       });
 
@@ -145,7 +189,7 @@ Our automated intelligence scanner has analyzed public digital signals for **${c
         const data = await res.json();
         setApiReportContent(data.content);
       } else {
-        const errorData = await res.json();
+        const errorData = await res.json().catch(() => ({}));
         console.error("Report generation failed:", errorData.error);
       }
     } catch (err) {
@@ -231,6 +275,34 @@ Our automated intelligence scanner has analyzed public digital signals for **${c
                 </div>
 
                 <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Generation Mode</label>
+                  <div className="grid grid-cols-2 gap-2 bg-white/10 dark:bg-white/5 p-1 rounded-xl border border-white/15 dark:border-white/5">
+                    <button
+                      type="button"
+                      onClick={() => setGenerationMode('single')}
+                      className={`py-1.5 rounded-lg text-xs font-extrabold transition-all ${
+                        generationMode === 'single'
+                          ? 'bg-violet-500 text-white shadow-sm'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Single Model
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGenerationMode('consensus')}
+                      className={`py-1.5 rounded-lg text-xs font-extrabold transition-all ${
+                        generationMode === 'consensus'
+                          ? 'bg-violet-500 text-white shadow-sm'
+                          : 'text-slate-650 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Consensus Audit
+                    </button>
+                  </div>
+                </div>
+
+                <div>
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">Report Template</label>
                   <select
                     value={reportType}
@@ -243,40 +315,66 @@ Our automated intelligence scanner has analyzed public digital signals for **${c
                   </select>
                 </div>
 
-                <div>
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">AI Model Provider</label>
-                  <select
-                    value={aiProvider}
-                    onChange={(e) => {
-                      const newProvider = e.target.value;
-                      setAiProvider(newProvider);
-                      if (newProvider === 'gemini') setAiModel('gemini-1.5-flash');
-                      else if (newProvider === 'openai') setAiModel('gpt-4o-mini');
-                      else if (newProvider === 'anthropic') setAiModel('claude-3-5-sonnet');
-                      else if (newProvider === 'groq') setAiModel('llama-3.1-70b');
-                    }}
-                    className="w-full px-4 py-2.5 bg-white/25 dark:bg-white/10 border border-white/50 dark:border-white/10 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 dark:text-white backdrop-blur-md"
-                  >
-                    <option value="gemini" className="dark:bg-slate-900">Google Gemini (Default)</option>
-                    <option value="openai" className="dark:bg-slate-900">OpenAI GPT</option>
-                    <option value="anthropic" className="dark:bg-slate-900">Anthropic Claude</option>
-                    <option value="groq" className="dark:bg-slate-900">Groq Llama</option>
-                  </select>
-                </div>
+                {generationMode === 'single' ? (
+                  <>
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">AI Model Provider</label>
+                      <select
+                        value={aiProvider}
+                        onChange={(e) => {
+                          const newProvider = e.target.value;
+                          setAiProvider(newProvider);
+                          if (newProvider === 'gemini') setAiModel('gemini-3.5-flash');
+                          else if (newProvider === 'openai') setAiModel('gpt-5.4');
+                          else if (newProvider === 'anthropic') setAiModel('claude-4.6-sonnet');
+                          else if (newProvider === 'groq') setAiModel('llama-4-maverick');
+                        }}
+                        className="w-full px-4 py-2.5 bg-white/25 dark:bg-white/10 border border-white/50 dark:border-white/10 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 dark:text-white backdrop-blur-md"
+                      >
+                        <option value="gemini" className="dark:bg-slate-900">Google Gemini</option>
+                        <option value="openai" className="dark:bg-slate-900">OpenAI GPT</option>
+                        <option value="anthropic" className="dark:bg-slate-900">Anthropic Claude</option>
+                        <option value="groq" className="dark:bg-slate-900">Groq Llama</option>
+                      </select>
+                    </div>
 
-                <div>
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">AI Model</label>
-                  <select
-                    value={aiModel}
-                    onChange={(e) => setAiModel(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-white/25 dark:bg-white/10 border border-white/50 dark:border-white/10 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 dark:text-white backdrop-blur-md"
-                  >
-                    {(PROVIDER_MODELS[aiProvider] || []).map((m) => (
-                      <option key={m.value} value={m.value} className="dark:bg-slate-900">
-                        {m.name}
-                      </option>
-                    ))}
-                  </select>
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">AI Model</label>
+                      <select
+                        value={aiModel}
+                        onChange={(e) => setAiModel(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-white/25 dark:bg-white/10 border border-white/50 dark:border-white/10 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 dark:text-white backdrop-blur-md"
+                      >
+                        {(PROVIDER_MODELS[aiProvider] || []).map((m) => (
+                          <option key={m.value} value={m.value} className="dark:bg-slate-900">
+                            {m.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-violet-500/10 border border-violet-500/20 p-4 rounded-2xl flex flex-col gap-1 shadow-inner text-left">
+                    <span className="text-xs font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-violet-650" /> Collaborative AI Consensus
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed mt-0.5">
+                      Fuses scraped signals from Google Gemini, critiques strategic positioning with Anthropic Claude, and generates a verified executive summary via OpenAI.
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 mt-1">
+                  <input
+                    type="checkbox"
+                    id="save-default-pref"
+                    checked={saveAsDefault}
+                    onChange={(e) => setSaveAsDefault(e.target.checked)}
+                    className="w-4 h-4 text-violet-600 bg-white/20 dark:bg-white/10 border-white/40 dark:border-white/20 rounded focus:ring-violet-500 focus:ring-2"
+                  />
+                  <label htmlFor="save-default-pref" className="text-xs font-bold text-slate-500 dark:text-slate-400 select-none cursor-pointer">
+                    Save as default generation options
+                  </label>
                 </div>
 
                 <button

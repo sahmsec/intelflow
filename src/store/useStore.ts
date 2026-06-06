@@ -83,6 +83,11 @@ interface IntelFlowState {
   
   // API Keys state
   apiKeys: ApiKeys;
+
+  // Generation Preferences state
+  defaultGenerationMode: 'single' | 'consensus';
+  defaultProvider: string;
+  defaultModel: string;
   
   // Actions
   addCompetitor: (name: string, url: string) => void;
@@ -104,6 +109,7 @@ interface IntelFlowState {
   
   // API Key Actions
   saveApiKey: (provider: keyof ApiKeys, key: string) => void;
+  saveGenerationPreferences: (mode: 'single' | 'consensus', provider: string, model: string) => void;
   
   // Report Actions
   addReport: (report: Omit<Report, 'id'>) => string;
@@ -140,6 +146,9 @@ export const useStore = create<IntelFlowState>()(
         gemini: '',
         groq: '',
       },
+      defaultGenerationMode: 'single',
+      defaultProvider: 'gemini',
+      defaultModel: 'gemini-1.5-flash',
       
       addCompetitor: (name, url) => set((state) => {
         const newCompetitor: Competitor = {
@@ -218,6 +227,12 @@ export const useStore = create<IntelFlowState>()(
           ...state.apiKeys,
           [provider]: key
         }
+      })),
+
+      saveGenerationPreferences: (mode, provider, model) => set(() => ({
+        defaultGenerationMode: mode,
+        defaultProvider: provider,
+        defaultModel: model,
       })),
       
       addReport: (report) => {

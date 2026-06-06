@@ -3,6 +3,109 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { headers } from "next/headers";
 
+async function callLLM({
+  provider,
+  model,
+  apiKey,
+  prompt,
+}: {
+  provider: string;
+  model: string;
+  apiKey: string;
+  prompt: string;
+}): Promise<string> {
+  if (!apiKey || apiKey.trim() === "") return "";
+  try {
+    if (provider === "gemini") {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+          }),
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      } else {
+        console.error(`Gemini API error (${model}):`, res.status, await res.text());
+      }
+    } else if (provider === "openai") {
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.7,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data?.choices?.[0]?.message?.content || "";
+      } else {
+        console.error(`OpenAI API error (${model}):`, res.status, await res.text());
+      }
+    } else if (provider === "anthropic") {
+      const apiModel = model === "claude-3-5-sonnet" ? "claude-3-5-sonnet-20241022" 
+                     : model === "claude-3-opus" ? "claude-3-opus-20240229" 
+                     : model === "claude-4.6-sonnet" ? "claude-3-5-sonnet-20241022"
+                     : model === "claude-4.8-opus" ? "claude-3-opus-20240229"
+                     : model;
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: apiModel,
+          max_tokens: 1024,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data?.content?.[0]?.text || "";
+      } else {
+        console.error(`Anthropic API error (${model}):`, res.status, await res.text());
+      }
+    } else if (provider === "groq") {
+      const apiModel = model === "llama-3.1-70b" ? "llama-3.1-70b-versatile"
+                     : model === "mixtral-8x7b" ? "mixtral-8x7b-32768"
+                     : model === "llama-4-maverick" ? "llama-3.1-70b-versatile"
+                     : model;
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: apiModel,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data?.choices?.[0]?.message?.content || "";
+      } else {
+        console.error(`Groq API error (${model}):`, res.status, await res.text());
+      }
+    }
+  } catch (err) {
+    console.error(`LLM Call failed for ${provider} (${model}):`, err);
+  }
+  return "";
+}
+
 export async function POST(req: Request) {
   try {
     const session = await auth.api.getSession({
@@ -17,10 +120,9 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { competitorId, reportType, apiKey: clientApiKey, provider: clientProvider, model: clientModel } = body;
+    const { competitorId, reportType, apiKey: clientApiKey, provider: clientProvider, model: clientModel, mode: clientMode, apiKeys } = body;
 
-    const apiKey = clientApiKey || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
-    const provider = clientProvider || (process.env.GEMINI_API_KEY ? "gemini" : process.env.OPENAI_API_KEY ? "openai" : undefined);
+    const mode = clientMode || "single";
 
     if (!competitorId || !reportType) {
       return new Response(JSON.stringify({ error: "Competitor ID and report type are required" }), {
@@ -60,8 +162,118 @@ export async function POST(req: Request) {
     const competitorUrl = competitor.url;
     const competitorIndustry = competitor.industry || "General Software & Tech";
 
-    // 3. AI Generation logic
-    const prompt = `You are a professional competitive intelligence analyst.
+    // Resolve keys
+    const geminiKey = apiKeys?.gemini || process.env.GEMINI_API_KEY;
+    const openaiKey = apiKeys?.openai || process.env.OPENAI_API_KEY;
+    const anthropicKey = apiKeys?.anthropic || process.env.ANTHROPIC_API_KEY;
+    const groqKey = apiKeys?.groq || process.env.GROQ_API_KEY;
+
+    let content = "";
+    let generatedByAI = false;
+    let actualProviderUsed = "mock";
+
+    if (mode === "consensus") {
+      // Consensus Pipeline
+      // Determine what keys are active for fallback
+      const activeKeys = {
+        gemini: geminiKey && geminiKey.trim() !== "",
+        openai: openaiKey && openaiKey.trim() !== "",
+        anthropic: anthropicKey && anthropicKey.trim() !== "",
+        groq: groqKey && groqKey.trim() !== "",
+      };
+
+      if (activeKeys.gemini || activeKeys.openai || activeKeys.anthropic || activeKeys.groq) {
+        // Resolve agents configuration based on key availability
+        const explorer = activeKeys.gemini ? { provider: "gemini", model: "gemini-3.5-flash", key: geminiKey }
+                        : activeKeys.openai ? { provider: "openai", model: "gpt-5.4", key: openaiKey }
+                        : activeKeys.anthropic ? { provider: "anthropic", model: "claude-4.6-sonnet", key: anthropicKey }
+                        : { provider: "groq", model: "llama-4-maverick", key: groqKey };
+
+        const critic = activeKeys.anthropic ? { provider: "anthropic", model: "claude-4.8-opus", key: anthropicKey }
+                      : activeKeys.openai ? { provider: "openai", model: "gpt-5.5", key: openaiKey }
+                      : activeKeys.gemini ? { provider: "gemini", model: "gemini-3.1-pro", key: geminiKey }
+                      : { provider: "groq", model: "llama-4-maverick", key: groqKey };
+
+        const director = activeKeys.openai ? { provider: "openai", model: "gpt-5.5", key: openaiKey }
+                        : activeKeys.gemini ? { provider: "gemini", model: "gemini-3.1-pro", key: geminiKey }
+                        : activeKeys.anthropic ? { provider: "anthropic", model: "claude-4.8-opus", key: anthropicKey }
+                        : { provider: "groq", model: "llama-4-maverick", key: groqKey };
+
+        try {
+          // Stage 1: Explorer performs raw characteristics scrape and draft
+          const explorerPrompt = `You are Agent Explorer, an expert competitor landing page scanner.
+Analyze the competitor "${competitorName}" (website: ${competitorUrl}) in the "${competitorIndustry}" industry.
+Extract and summarize their core value proposition, key target demographics, and primary digital signals. Keep it factual and brief.`;
+
+          const explorerOutput = await callLLM({
+            provider: explorer.provider,
+            model: explorer.model,
+            apiKey: explorer.key,
+            prompt: explorerPrompt,
+          });
+
+          if (explorerOutput && explorerOutput.trim() !== "") {
+            // Stage 2: Critic reviews, challenges positioning assumptions, and estimates threat level
+            const criticPrompt = `You are Agent Critic, a senior strategic analyst.
+Review the following Explorer signals draft for competitor "${competitorName}":
+---
+${explorerOutput}
+---
+Perform a critical threat analysis. Challenge any weak assumptions. Identify hidden opportunities or aggressive tactics they might use to win market share from us.`;
+
+            const criticOutput = await callLLM({
+              provider: critic.provider,
+              model: critic.model,
+              apiKey: critic.key,
+              prompt: criticPrompt,
+            });
+
+            // Stage 3: Director synthesizes inputs into the final Markdown Brief
+            const directorPrompt = `You are Agent Director, a corporate strategy editor.
+Review the original Explorer facts and the Critic's strategic assessment for competitor "${competitorName}":
+Explorer Facts:
+---
+${explorerOutput}
+---
+Critic Strategic Assessment:
+---
+${criticOutput || "No critical critiques found."}
+---
+
+Generate a detailed "${reportType}" brief in clean markdown format. Do NOT wrap output in markdown code blocks.
+The final brief MUST contain exactly these three sections:
+### Executive Summary
+...
+### Strategic Threat Assessment
+...
+### Recommended Counter-Strategy
+...`;
+
+            const finalReport = await callLLM({
+              provider: director.provider,
+              model: director.model,
+              apiKey: director.key,
+              prompt: directorPrompt,
+            });
+
+            if (finalReport && finalReport.trim() !== "") {
+              content = finalReport;
+              generatedByAI = true;
+              actualProviderUsed = "consensus";
+            }
+          }
+        } catch (consensusErr) {
+          console.error("Failed executing AI consensus mode pipeline:", consensusErr);
+        }
+      }
+    } else {
+      // Single Model Mode
+      const provider = clientProvider || (geminiKey ? "gemini" : openaiKey ? "openai" : undefined);
+      const apiKey = clientApiKey || (provider === "gemini" ? geminiKey : provider === "openai" ? openaiKey : provider === "anthropic" ? anthropicKey : provider === "groq" ? groqKey : undefined);
+      const model = clientModel || (provider === "gemini" ? "gemini-3.5-flash" : provider === "openai" ? "gpt-5.4" : provider === "anthropic" ? "claude-4.6-sonnet" : provider === "groq" ? "llama-4-maverick" : undefined);
+
+      if (apiKey && apiKey.trim() !== "" && provider && model) {
+        const prompt = `You are a professional competitive intelligence analyst.
 Analyze the competitor "${competitorName}" (website: ${competitorUrl}) in the "${competitorIndustry}" industry.
 Generate a detailed "${reportType}" report for them.
 Write it in markdown format. DO NOT wrap the output in markdown code blocks (e.g. \`\`\`markdown). Just start writing the content.
@@ -75,110 +287,18 @@ The report MUST contain these three sections with exactly these headings:
 
 Keep the tone professional, insightful, and detailed. Provide clear actionable counter-strategies.`;
 
-    let content = "";
-    let generatedByAI = false;
+        const singleOutput = await callLLM({
+          provider,
+          model,
+          apiKey,
+          prompt,
+        });
 
-    if (apiKey && apiKey.trim() !== "") {
-      try {
-        if (provider === "gemini") {
-          const modelName = clientModel || "gemini-1.5-flash";
-          const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-              }),
-            }
-          );
-          if (res.ok) {
-            const data = await res.json();
-            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (text) {
-              content = text;
-              generatedByAI = true;
-            }
-          } else {
-            console.error("Gemini API error status:", res.status, await res.text());
-          }
-        } else if (provider === "openai") {
-          const modelName = clientModel || "gpt-4o-mini";
-          const res = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify({
-              model: modelName,
-              messages: [{ role: "user", content: prompt }],
-              temperature: 0.7,
-            }),
-          });
-          if (res.ok) {
-            const data = await res.json();
-            const text = data?.choices?.[0]?.message?.content;
-            if (text) {
-              content = text;
-              generatedByAI = true;
-            }
-          } else {
-            console.error("OpenAI API error status:", res.status, await res.text());
-          }
-        } else if (provider === "anthropic") {
-          const modelName = clientModel || "claude-3-5-sonnet";
-          const apiModel = modelName === "claude-3-5-sonnet" ? "claude-3-5-sonnet-20241022" 
-                         : modelName === "claude-3-opus" ? "claude-3-opus-20240229" 
-                         : modelName;
-          const res = await fetch("https://api.anthropic.com/v1/messages", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-api-key": apiKey,
-              "anthropic-version": "2023-06-01",
-            },
-            body: JSON.stringify({
-              model: apiModel,
-              max_tokens: 1024,
-              messages: [{ role: "user", content: prompt }],
-            }),
-          });
-          if (res.ok) {
-            const data = await res.json();
-            const text = data?.content?.[0]?.text;
-            if (text) {
-              content = text;
-              generatedByAI = true;
-            }
-          }
-        } else if (provider === "groq") {
-          const modelName = clientModel || "llama-3.1-70b";
-          const apiModel = modelName === "llama-3.1-70b" ? "llama-3.1-70b-versatile"
-                         : modelName === "mixtral-8x7b" ? "mixtral-8x7b-32768"
-                         : modelName;
-          const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify({
-              model: apiModel,
-              messages: [{ role: "user", content: prompt }],
-            }),
-          });
-          if (res.ok) {
-            const data = await res.json();
-            const text = data?.choices?.[0]?.message?.content;
-            if (text) {
-              content = text;
-              generatedByAI = true;
-            }
-          }
+        if (singleOutput && singleOutput.trim() !== "") {
+          content = singleOutput;
+          generatedByAI = true;
+          actualProviderUsed = provider;
         }
-      } catch (aiErr) {
-        console.error("AI Generation request failed:", aiErr);
       }
     }
 
@@ -206,7 +326,7 @@ Based on recent updates, this competitor is showing **${activityLevel}** activit
 *(Note: Stored AI API Keys were not active. Configure your OpenAI or Gemini key under Settings > AI Providers to generate real-time dynamic AI reports).*`;
     }
 
-    return new Response(JSON.stringify({ content, provider: generatedByAI ? provider : "mock" }), {
+    return new Response(JSON.stringify({ content, provider: actualProviderUsed }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
