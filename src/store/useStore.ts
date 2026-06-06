@@ -151,7 +151,7 @@ export const useStore = create<IntelFlowState>()(
       },
       defaultGenerationMode: 'single',
       defaultProvider: 'gemini',
-      defaultModel: 'gemini-1.5-flash',
+      defaultModel: 'gemini-3.5-flash-high',
       
       syncWithDatabase: async () => {
         try {

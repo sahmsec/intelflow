@@ -77,7 +77,7 @@ export default function ReportsPage() {
   const [reportType, setReportType] = useState('Competitive Audit');
   const [generationMode, setGenerationMode] = useState<'single' | 'consensus'>(defaultGenerationMode || 'single');
   const [aiProvider, setAiProvider] = useState(defaultProvider || 'gemini');
-  const [aiModel, setAiModel] = useState(defaultModel || 'gemini-1.5-flash');
+  const [aiModel, setAiModel] = useState(defaultModel || 'gemini-3.5-flash-high');
   const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [search, setSearch] = useState('');
   
@@ -332,7 +332,7 @@ Our automated intelligence scanner has analyzed public digital signals for **${c
                         onChange={(e) => {
                           const newProvider = e.target.value;
                           setAiProvider(newProvider);
-                          if (newProvider === 'gemini') setAiModel('gemini-3.5-flash');
+                          if (newProvider === 'gemini') setAiModel('gemini-3.5-flash-high');
                           else if (newProvider === 'openai') setAiModel('gpt-5.4');
                           else if (newProvider === 'anthropic') setAiModel('claude-4.6-sonnet');
                           else if (newProvider === 'groq') setAiModel('llama-4-maverick');

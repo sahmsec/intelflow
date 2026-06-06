@@ -141,7 +141,7 @@ export async function GET(req: Request) {
 
       const apiKey = process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
       const provider = process.env.GEMINI_API_KEY ? "gemini" : process.env.OPENAI_API_KEY ? "openai" : "";
-      const model = provider === "gemini" ? "gemini-1.5-flash" : "gpt-4o-mini";
+      const model = provider === "gemini" ? "gemini-3.5-flash-high" : "gpt-4o-mini";
 
       if (apiKey && provider) {
         // Construct analysis prompt

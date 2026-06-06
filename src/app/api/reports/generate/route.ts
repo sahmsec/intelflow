@@ -338,7 +338,7 @@ The final brief MUST contain exactly these three sections:
       // Single Model Mode
       const provider = clientProvider || (geminiKey ? "gemini" : openaiKey ? "openai" : undefined);
       const apiKey = clientApiKey || (provider === "gemini" ? geminiKey : provider === "openai" ? openaiKey : provider === "anthropic" ? anthropicKey : provider === "groq" ? groqKey : undefined);
-      const model = clientModel || (provider === "gemini" ? "gemini-1.5-flash" : provider === "openai" ? "gpt-4o-mini" : provider === "anthropic" ? "claude-3-5-sonnet" : provider === "groq" ? "llama-3.1-70b" : undefined);
+      const model = clientModel || (provider === "gemini" ? "gemini-3.5-flash-high" : provider === "openai" ? "gpt-4o-mini" : provider === "anthropic" ? "claude-3-5-sonnet" : provider === "groq" ? "llama-3.1-70b" : undefined);
 
       if (apiKey && apiKey.trim() !== "" && provider && model) {
         const prompt = `You are a professional competitive intelligence analyst.
