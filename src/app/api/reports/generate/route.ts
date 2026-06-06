@@ -2,6 +2,60 @@ import { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { headers } from "next/headers";
+import { getCountryLocale } from "@/lib/countries";
+
+// Fetch Google News RSS headlines (free, regional, keyless)
+async function fetchCompetitorNews(name: string, country: string): Promise<string[]> {
+  const geo = getCountryLocale(country || "global");
+  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(name)}&hl=${geo.hl}&gl=${geo.gl}`;
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return [];
+    const xml = await res.text();
+    
+    // Extract titles using regex
+    const titles: string[] = [];
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+    const titleRegex = /<title>([\s\S]*?)<\/title>/;
+    
+    let match;
+    let limit = 0;
+    while ((match = itemRegex.exec(xml)) !== null && limit < 5) {
+      const itemXml = match[1];
+      const titleMatch = titleRegex.exec(itemXml);
+      if (titleMatch && titleMatch[1]) {
+        titles.push(titleMatch[1].trim());
+      }
+      limit++;
+    }
+    return titles;
+  } catch (err) {
+    console.error(`Failed to fetch regional news for ${name}:`, err);
+    return [];
+  }
+}
+
+// Helper to scrape clean text from competitor URL
+async function crawlCompetitorSite(url: string): Promise<string> {
+  const targetUrl = url.startsWith("http") ? url : `https://${url}`;
+  try {
+    const res = await fetch(targetUrl, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return "";
+    const html = await res.text();
+    // Strip scripts and styles
+    const clean = html
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[\s\S]*?<\/style>/gi, "")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    return clean.slice(0, 3000); // Send first 3000 characters to LLM
+  } catch (err) {
+    console.error(`Failed to crawl url ${targetUrl}:`, err);
+    return "";
+  }
+}
+
 
 async function callLLM({
   provider,
@@ -172,6 +226,10 @@ export async function POST(req: Request) {
     let generatedByAI = false;
     let actualProviderUsed = "mock";
 
+    // Fetch live crawler signals and news headlines
+    const headlines = await fetchCompetitorNews(competitorName, competitor.country || "global");
+    const crawledText = await crawlCompetitorSite(competitorUrl);
+
     if (mode === "consensus") {
       // Consensus Pipeline
       // Determine what keys are active for fallback
@@ -183,27 +241,37 @@ export async function POST(req: Request) {
       };
 
       if (activeKeys.gemini || activeKeys.openai || activeKeys.anthropic || activeKeys.groq) {
-        // Resolve agents configuration based on key availability
-        const explorer = activeKeys.gemini ? { provider: "gemini", model: "gemini-3.5-flash", key: geminiKey }
-                        : activeKeys.openai ? { provider: "openai", model: "gpt-5.4", key: openaiKey }
-                        : activeKeys.anthropic ? { provider: "anthropic", model: "claude-4.6-sonnet", key: anthropicKey }
-                        : { provider: "groq", model: "llama-4-maverick", key: groqKey };
+        // Resolve agents configuration based on key availability using real production models
+        const explorer = activeKeys.gemini ? { provider: "gemini", model: "gemini-1.5-flash", key: geminiKey }
+                        : activeKeys.openai ? { provider: "openai", model: "gpt-4o-mini", key: openaiKey }
+                        : activeKeys.anthropic ? { provider: "anthropic", model: "claude-3-5-sonnet", key: anthropicKey }
+                        : { provider: "groq", model: "llama-3.1-70b", key: groqKey };
 
-        const critic = activeKeys.anthropic ? { provider: "anthropic", model: "claude-4.8-opus", key: anthropicKey }
-                      : activeKeys.openai ? { provider: "openai", model: "gpt-5.5", key: openaiKey }
-                      : activeKeys.gemini ? { provider: "gemini", model: "gemini-3.1-pro", key: geminiKey }
-                      : { provider: "groq", model: "llama-4-maverick", key: groqKey };
+        const critic = activeKeys.anthropic ? { provider: "anthropic", model: "claude-3-5-sonnet", key: anthropicKey }
+                      : activeKeys.openai ? { provider: "openai", model: "gpt-4o", key: openaiKey }
+                      : activeKeys.gemini ? { provider: "gemini", model: "gemini-1.5-pro", key: geminiKey }
+                      : { provider: "groq", model: "llama-3.1-70b", key: groqKey };
 
-        const director = activeKeys.openai ? { provider: "openai", model: "gpt-5.5", key: openaiKey }
-                        : activeKeys.gemini ? { provider: "gemini", model: "gemini-3.1-pro", key: geminiKey }
-                        : activeKeys.anthropic ? { provider: "anthropic", model: "claude-4.8-opus", key: anthropicKey }
-                        : { provider: "groq", model: "llama-4-maverick", key: groqKey };
+        const director = activeKeys.openai ? { provider: "openai", model: "gpt-4o", key: openaiKey }
+                        : activeKeys.gemini ? { provider: "gemini", model: "gemini-1.5-pro", key: geminiKey }
+                        : activeKeys.anthropic ? { provider: "anthropic", model: "claude-3-5-sonnet", key: anthropicKey }
+                        : { provider: "groq", model: "llama-3.1-70b", key: groqKey };
 
         try {
           // Stage 1: Explorer performs raw characteristics scrape and draft
           const explorerPrompt = `You are Agent Explorer, an expert competitor landing page scanner.
 Analyze the competitor "${competitorName}" (website: ${competitorUrl}) in the "${competitorIndustry}" industry.
-Extract and summarize their core value proposition, key target demographics, and primary digital signals. Keep it factual and brief.`;
+
+Here is the live data we crawled from their website:
+---
+${crawledText || "No content scraped from site."}
+---
+
+Here are the recent regional news headlines we detected for them:
+${headlines.length > 0 ? headlines.map(h => `- ${h}`).join("\n") : "No recent news detected."}
+---
+
+Extract and summarize their core value proposition, key target demographics, and primary digital signals based on these live inputs. Keep it factual and brief.`;
 
           const explorerOutput = await callLLM({
             provider: explorer.provider,
@@ -270,12 +338,22 @@ The final brief MUST contain exactly these three sections:
       // Single Model Mode
       const provider = clientProvider || (geminiKey ? "gemini" : openaiKey ? "openai" : undefined);
       const apiKey = clientApiKey || (provider === "gemini" ? geminiKey : provider === "openai" ? openaiKey : provider === "anthropic" ? anthropicKey : provider === "groq" ? groqKey : undefined);
-      const model = clientModel || (provider === "gemini" ? "gemini-3.5-flash" : provider === "openai" ? "gpt-5.4" : provider === "anthropic" ? "claude-4.6-sonnet" : provider === "groq" ? "llama-4-maverick" : undefined);
+      const model = clientModel || (provider === "gemini" ? "gemini-1.5-flash" : provider === "openai" ? "gpt-4o-mini" : provider === "anthropic" ? "claude-3-5-sonnet" : provider === "groq" ? "llama-3.1-70b" : undefined);
 
       if (apiKey && apiKey.trim() !== "" && provider && model) {
         const prompt = `You are a professional competitive intelligence analyst.
 Analyze the competitor "${competitorName}" (website: ${competitorUrl}) in the "${competitorIndustry}" industry.
-Generate a detailed "${reportType}" report for them.
+
+Here is the live data we crawled from their website:
+---
+${crawledText || "No content scraped from site."}
+---
+
+Here are the recent regional news headlines we detected for them:
+${headlines.length > 0 ? headlines.map(h => `- ${h}`).join("\n") : "No recent news detected."}
+---
+
+Generate a detailed "${reportType}" report for them based on these live signals.
 Write it in markdown format. DO NOT wrap the output in markdown code blocks (e.g. \`\`\`markdown). Just start writing the content.
 The report MUST contain these three sections with exactly these headings:
 ### Executive Summary
@@ -301,6 +379,7 @@ Keep the tone professional, insightful, and detailed. Provide clear actionable c
         }
       }
     }
+
 
     // 4. Fallback high-quality template strategy generation
     if (!generatedByAI || !content) {
