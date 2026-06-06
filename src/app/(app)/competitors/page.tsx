@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Plus, ExternalLink, Trash2, TrendingUp, TrendingDown, Minus, Globe } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { COUNTRIES } from '@/lib/countries';
 
 export default function CompetitorsPage() {
   const { competitors, removeCompetitor, addCompetitor } = useStore();
@@ -67,16 +68,13 @@ export default function CompetitorsPage() {
               <select
                 value={newCountry}
                 onChange={e => setNewCountry(e.target.value)}
-                className="px-4 py-2.5 rounded-xl bg-white/20 dark:bg-slate-900/40 border border-white/50 dark:border-white/10 focus:bg-white/40 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm font-semibold text-slate-850 dark:text-white backdrop-blur-md"
+                className="px-4 py-2.5 rounded-xl bg-white/20 dark:bg-slate-900/40 border border-white/50 dark:border-white/10 focus:bg-white/40 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm font-semibold text-slate-850 dark:text-white backdrop-blur-md max-w-[200px]"
               >
-                <option value="global" className="dark:bg-slate-900">Global Tracker</option>
-                <option value="United States" className="dark:bg-slate-900">United States</option>
-                <option value="Germany" className="dark:bg-slate-900">Germany</option>
-                <option value="Bangladesh" className="dark:bg-slate-900">Bangladesh</option>
-                <option value="United Kingdom" className="dark:bg-slate-900">United Kingdom</option>
-                <option value="Canada" className="dark:bg-slate-900">Canada</option>
-                <option value="Australia" className="dark:bg-slate-900">Australia</option>
-                <option value="India" className="dark:bg-slate-900">India</option>
+                {COUNTRIES.map((c) => (
+                  <option key={c.name} value={c.name} className="dark:bg-slate-900">
+                    {c.name === "Global / Multi-Region" ? "Global Tracker" : c.name}
+                  </option>
+                ))}
               </select>
               <button 
                 onClick={handleAdd} 

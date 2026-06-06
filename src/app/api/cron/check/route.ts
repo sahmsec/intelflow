@@ -1,16 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-
-const COUNTRY_MAP: Record<string, { hl: string; gl: string }> = {
-  global: { hl: 'en', gl: 'US' },
-  'United States': { hl: 'en', gl: 'US' },
-  Germany: { hl: 'de', gl: 'DE' },
-  Bangladesh: { hl: 'en', gl: 'BD' },
-  'United Kingdom': { hl: 'en', gl: 'GB' },
-  Canada: { hl: 'en', gl: 'CA' },
-  Australia: { hl: 'en', gl: 'AU' },
-  India: { hl: 'en', gl: 'IN' }
-};
+import { getCountryLocale } from "@/lib/countries";
 
 // Reusable LLM caller
 async function callLLM({
@@ -67,7 +57,7 @@ async function callLLM({
 
 // Fetch Google News RSS headlines (free, regional, keyless)
 async function fetchCompetitorNews(name: string, country: string): Promise<string[]> {
-  const geo = COUNTRY_MAP[country] || COUNTRY_MAP.global;
+  const geo = getCountryLocale(country || "global");
   const url = `https://news.google.com/rss/search?q=${encodeURIComponent(name)}&hl=${geo.hl}&gl=${geo.gl}`;
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
