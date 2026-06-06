@@ -9,6 +9,7 @@ export type Competitor = {
   trend: 'up' | 'down' | 'stable';
   risk: 'low' | 'moderate' | 'critical';
   logo: string;
+  country?: string;
 };
 
 export type Insight = {
@@ -90,7 +91,7 @@ interface IntelFlowState {
   defaultModel: string;
   
   // Actions
-  addCompetitor: (name: string, url: string) => void;
+  addCompetitor: (name: string, url: string, country?: string) => void;
   removeCompetitor: (id: string) => void;
   addInsight: (insight: Omit<Insight, 'id'>) => void;
   markAlertReviewed: (id: string) => void;
@@ -150,7 +151,7 @@ export const useStore = create<IntelFlowState>()(
       defaultProvider: 'gemini',
       defaultModel: 'gemini-1.5-flash',
       
-      addCompetitor: (name, url) => set((state) => {
+      addCompetitor: (name, url, country) => set((state) => {
         const newCompetitor: Competitor = {
           id: `c${Date.now()}`,
           name,
@@ -159,6 +160,7 @@ export const useStore = create<IntelFlowState>()(
           trend: 'stable',
           risk: 'low',
           logo: name.charAt(0).toUpperCase(),
+          country: country || 'global',
         };
         return { competitors: [...state.competitors, newCompetitor] };
       }),

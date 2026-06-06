@@ -95,6 +95,7 @@ model Competitor {
   url         String
   logoUrl     String?
   industry    String?
+  country     String?  @default("global")
   riskLevel   String   @default("low") // low, moderate, critical
   activity    String   @default("low") // low, medium, high
   trend       String   @default("stable") // down, stable, up

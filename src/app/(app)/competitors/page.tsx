@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, ExternalLink, Trash2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Search, Plus, ExternalLink, Trash2, TrendingUp, TrendingDown, Minus, Globe } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 
 export default function CompetitorsPage() {
@@ -12,14 +12,16 @@ export default function CompetitorsPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [newName, setNewName] = useState('');
   const [newUrl, setNewUrl] = useState('');
+  const [newCountry, setNewCountry] = useState('global');
 
   const filtered = competitors.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
 
   const handleAdd = () => {
     if (newName && newUrl) {
-      addCompetitor(newName, newUrl);
+      addCompetitor(newName, newUrl, newCountry);
       setNewName('');
       setNewUrl('');
+      setNewCountry('global');
       setIsAdding(false);
     }
   };
@@ -51,7 +53,7 @@ export default function CompetitorsPage() {
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-8">
           <Card className="glass-card p-6 border-none shadow-[0_20px_50px_-12px_rgba(30,41,59,0.03)]">
             <h3 className="font-bold text-base text-slate-800 dark:text-white mb-4">Track a new competitor</h3>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
               <input 
                 placeholder="Company Name (e.g. Acme Corp)" 
                 value={newName} onChange={e => setNewName(e.target.value)}
@@ -62,6 +64,20 @@ export default function CompetitorsPage() {
                 value={newUrl} onChange={e => setNewUrl(e.target.value)}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-white/20 dark:bg-slate-900/40 border border-white/50 dark:border-white/10 focus:bg-white/40 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm font-semibold text-slate-800 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
               />
+              <select
+                value={newCountry}
+                onChange={e => setNewCountry(e.target.value)}
+                className="px-4 py-2.5 rounded-xl bg-white/20 dark:bg-slate-900/40 border border-white/50 dark:border-white/10 focus:bg-white/40 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm font-semibold text-slate-850 dark:text-white backdrop-blur-md"
+              >
+                <option value="global" className="dark:bg-slate-900">Global Tracker</option>
+                <option value="United States" className="dark:bg-slate-900">United States</option>
+                <option value="Germany" className="dark:bg-slate-900">Germany</option>
+                <option value="Bangladesh" className="dark:bg-slate-900">Bangladesh</option>
+                <option value="United Kingdom" className="dark:bg-slate-900">United Kingdom</option>
+                <option value="Canada" className="dark:bg-slate-900">Canada</option>
+                <option value="Australia" className="dark:bg-slate-900">Australia</option>
+                <option value="India" className="dark:bg-slate-900">India</option>
+              </select>
               <button 
                 onClick={handleAdd} 
                 disabled={!newName || !newUrl}
@@ -109,8 +125,14 @@ export default function CompetitorsPage() {
                   </div>
                 </div>
                 
-                <h3 className="font-extrabold text-lg text-slate-850 dark:text-white">{comp.name}</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-6">{comp.url}</p>
+                <h3 className="font-extrabold text-lg text-slate-850 dark:text-white leading-tight">{comp.name}</h3>
+                <div className="flex flex-wrap items-center gap-1.5 mt-1.5 mb-6">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{comp.url}</span>
+                  <span className="w-1 h-1 rounded-full bg-slate-350 shrink-0" />
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-violet-500/10 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 border border-violet-500/25 dark:border-violet-500/30 shadow-sm flex items-center gap-1">
+                    <Globe className="w-2.5 h-2.5" /> {comp.country || 'global'}
+                  </span>
+                </div>
 
                 <div className="flex justify-between items-center pt-4 border-t border-white/20">
                   <div className="flex flex-col gap-1">
