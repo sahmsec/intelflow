@@ -242,18 +242,18 @@ export async function POST(req: Request) {
 
       if (activeKeys.gemini || activeKeys.openai || activeKeys.anthropic || activeKeys.groq) {
         // Resolve agents configuration based on key availability using real production models
-        const explorer = activeKeys.gemini ? { provider: "gemini", model: "gemini-1.5-flash", key: geminiKey }
+        const explorer = activeKeys.gemini ? { provider: "gemini", model: "gemini-3.5-flash-high", key: geminiKey }
                         : activeKeys.openai ? { provider: "openai", model: "gpt-4o-mini", key: openaiKey }
                         : activeKeys.anthropic ? { provider: "anthropic", model: "claude-3-5-sonnet", key: anthropicKey }
                         : { provider: "groq", model: "llama-3.1-70b", key: groqKey };
 
         const critic = activeKeys.anthropic ? { provider: "anthropic", model: "claude-3-5-sonnet", key: anthropicKey }
                       : activeKeys.openai ? { provider: "openai", model: "gpt-4o", key: openaiKey }
-                      : activeKeys.gemini ? { provider: "gemini", model: "gemini-1.5-pro", key: geminiKey }
+                      : activeKeys.gemini ? { provider: "gemini", model: "gemini-3.1-pro-high", key: geminiKey }
                       : { provider: "groq", model: "llama-3.1-70b", key: groqKey };
 
         const director = activeKeys.openai ? { provider: "openai", model: "gpt-4o", key: openaiKey }
-                        : activeKeys.gemini ? { provider: "gemini", model: "gemini-1.5-pro", key: geminiKey }
+                        : activeKeys.gemini ? { provider: "gemini", model: "gemini-3.1-pro-high", key: geminiKey }
                         : activeKeys.anthropic ? { provider: "anthropic", model: "claude-3-5-sonnet", key: anthropicKey }
                         : { provider: "groq", model: "llama-3.1-70b", key: groqKey };
 

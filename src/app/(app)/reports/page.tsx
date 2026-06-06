@@ -19,10 +19,13 @@ const REPORT_STEPS = [
 
 const PROVIDER_MODELS: Record<string, { name: string; value: string }[]> = {
   gemini: [
-    { name: 'Google Gemini 3.5 Flash (Latest)', value: 'gemini-3.5-flash' },
-    { name: 'Google Gemini 3.1 Pro (Reasoning)', value: 'gemini-3.1-pro' },
-    { name: 'Google Gemini 1.5 Flash (Stable)', value: 'gemini-1.5-flash' },
-    { name: 'Google Gemini 1.5 Pro (Stable)', value: 'gemini-1.5-pro' }
+    { name: 'Gemini 3.5 Flash (High)', value: 'gemini-3.5-flash-high' },
+    { name: 'Gemini 3.5 Flash (Medium)', value: 'gemini-3.5-flash-medium' },
+    { name: 'Gemini 3.5 Flash (Low)', value: 'gemini-3.5-flash-low' },
+    { name: 'Gemini 3.1 Pro (High)', value: 'gemini-3.1-pro-high' },
+    { name: 'Gemini 3.1 Pro (Low)', value: 'gemini-3.1-pro-low' },
+    { name: 'Gemini 1.5 Pro (Stable)', value: 'gemini-1.5-pro' },
+    { name: 'Gemini 1.5 Flash (Stable)', value: 'gemini-1.5-flash' }
   ],
   openai: [
     { name: 'OpenAI GPT-5.5 (Flagship)', value: 'gpt-5.5' },

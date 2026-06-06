@@ -15,7 +15,7 @@ import {
 const AI_PROVIDERS = [
   { id: 'openai', name: 'OpenAI', models: ['gpt-5.5', 'gpt-5.4', 'gpt-4o', 'gpt-4o-mini', 'o4-mini'], icon: 'O' },
   { id: 'anthropic', name: 'Anthropic', models: ['claude-4.8-opus', 'claude-4.6-sonnet', 'claude-3-5-sonnet'], icon: 'A' },
-  { id: 'gemini', name: 'Google Gemini', models: ['gemini-3.1-pro', 'gemini-3.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'], icon: 'G' },
+  { id: 'gemini', name: 'Google Gemini', models: ['gemini-3.5-flash-high', 'gemini-3.5-flash-medium', 'gemini-3.5-flash-low', 'gemini-3.1-pro-high', 'gemini-3.1-pro-low', 'gemini-1.5-pro', 'gemini-1.5-flash'], icon: 'G' },
   { id: 'groq', name: 'Groq', models: ['llama-4-maverick', 'llama-3.1-70b', 'mixtral-8x7b'], icon: 'Q' },
 ] as const;
 
