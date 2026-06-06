@@ -17,6 +17,27 @@ const REPORT_STEPS = [
   "Finalizing competitive executive brief..."
 ];
 
+const PROVIDER_MODELS: Record<string, { name: string; value: string }[]> = {
+  gemini: [
+    { name: 'Google Gemini 1.5 Flash (Default)', value: 'gemini-1.5-flash' },
+    { name: 'Google Gemini 1.5 Pro', value: 'gemini-1.5-pro' }
+  ],
+  openai: [
+    { name: 'OpenAI GPT-4o Mini (Default)', value: 'gpt-4o-mini' },
+    { name: 'OpenAI GPT-4o', value: 'gpt-4o' },
+    { name: 'OpenAI o1 Preview', value: 'o1-preview' }
+  ],
+  anthropic: [
+    { name: 'Anthropic Claude 3.5 Sonnet (Default)', value: 'claude-3-5-sonnet' },
+    { name: 'Anthropic Claude 3 Opus', value: 'claude-3-opus' }
+  ],
+  groq: [
+    { name: 'Groq Llama 3.1 70B (Default)', value: 'llama-3.1-70b' },
+    { name: 'Groq Mixtral 8x7B', value: 'mixtral-8x7b' }
+  ]
+};
+
+
 export default function ReportsPage() {
   const { competitors, reports, addReport, updateReportStatus, removeReport } = useStore();
   const [selectedReportId, setSelectedReportId] = useState<string>('');
@@ -24,6 +45,8 @@ export default function ReportsPage() {
   // Create Report State
   const [selectedCompId, setSelectedCompId] = useState('');
   const [reportType, setReportType] = useState('Competitive Audit');
+  const [aiProvider, setAiProvider] = useState('gemini');
+  const [aiModel, setAiModel] = useState('gemini-1.5-flash');
   const [search, setSearch] = useState('');
   
   // Generation Animation state
@@ -89,22 +112,8 @@ Our automated intelligence scanner has analyzed public digital signals for **${c
 
     // Get keys and resolve provider
     const keys = useStore.getState().apiKeys;
-    let selectedProvider = '';
-    let apiKey = '';
-
-    if (keys.gemini) {
-      selectedProvider = 'gemini';
-      apiKey = keys.gemini;
-    } else if (keys.openai) {
-      selectedProvider = 'openai';
-      apiKey = keys.openai;
-    } else if (keys.anthropic) {
-      selectedProvider = 'anthropic';
-      apiKey = keys.anthropic;
-    } else if (keys.groq) {
-      selectedProvider = 'groq';
-      apiKey = keys.groq;
-    }
+    const selectedProvider = aiProvider;
+    const apiKey = keys[aiProvider as keyof typeof keys] || '';
 
     const tempId = addReport({
       title: `${reportType} - ${competitorName}`,
@@ -128,6 +137,7 @@ Our automated intelligence scanner has analyzed public digital signals for **${c
           reportType,
           apiKey,
           provider: selectedProvider,
+          model: aiModel,
         }),
       });
 
@@ -230,6 +240,42 @@ Our automated intelligence scanner has analyzed public digital signals for **${c
                     <option value="Competitive Audit" className="dark:bg-slate-900">Competitive Audit (Core Assessment)</option>
                     <option value="Pricing Study" className="dark:bg-slate-900">Pricing & Monetization Study</option>
                     <option value="SEO & Traffic Analysis" className="dark:bg-slate-900">SEO & Traffic Dominance Analysis</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">AI Model Provider</label>
+                  <select
+                    value={aiProvider}
+                    onChange={(e) => {
+                      const newProvider = e.target.value;
+                      setAiProvider(newProvider);
+                      if (newProvider === 'gemini') setAiModel('gemini-1.5-flash');
+                      else if (newProvider === 'openai') setAiModel('gpt-4o-mini');
+                      else if (newProvider === 'anthropic') setAiModel('claude-3-5-sonnet');
+                      else if (newProvider === 'groq') setAiModel('llama-3.1-70b');
+                    }}
+                    className="w-full px-4 py-2.5 bg-white/25 dark:bg-white/10 border border-white/50 dark:border-white/10 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 dark:text-white backdrop-blur-md"
+                  >
+                    <option value="gemini" className="dark:bg-slate-900">Google Gemini (Default)</option>
+                    <option value="openai" className="dark:bg-slate-900">OpenAI GPT</option>
+                    <option value="anthropic" className="dark:bg-slate-900">Anthropic Claude</option>
+                    <option value="groq" className="dark:bg-slate-900">Groq Llama</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">AI Model</label>
+                  <select
+                    value={aiModel}
+                    onChange={(e) => setAiModel(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-white/25 dark:bg-white/10 border border-white/50 dark:border-white/10 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 dark:text-white backdrop-blur-md"
+                  >
+                    {(PROVIDER_MODELS[aiProvider] || []).map((m) => (
+                      <option key={m.value} value={m.value} className="dark:bg-slate-900">
+                        {m.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { competitorId, reportType, apiKey: clientApiKey, provider: clientProvider } = body;
+    const { competitorId, reportType, apiKey: clientApiKey, provider: clientProvider, model: clientModel } = body;
 
     const apiKey = clientApiKey || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
     const provider = clientProvider || (process.env.GEMINI_API_KEY ? "gemini" : process.env.OPENAI_API_KEY ? "openai" : undefined);
@@ -81,8 +81,9 @@ Keep the tone professional, insightful, and detailed. Provide clear actionable c
     if (apiKey && apiKey.trim() !== "") {
       try {
         if (provider === "gemini") {
+          const modelName = clientModel || "gemini-1.5-flash";
           const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -102,6 +103,7 @@ Keep the tone professional, insightful, and detailed. Provide clear actionable c
             console.error("Gemini API error status:", res.status, await res.text());
           }
         } else if (provider === "openai") {
+          const modelName = clientModel || "gpt-4o-mini";
           const res = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -109,7 +111,7 @@ Keep the tone professional, insightful, and detailed. Provide clear actionable c
               Authorization: `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-              model: "gpt-4o-mini",
+              model: modelName,
               messages: [{ role: "user", content: prompt }],
               temperature: 0.7,
             }),
@@ -125,6 +127,10 @@ Keep the tone professional, insightful, and detailed. Provide clear actionable c
             console.error("OpenAI API error status:", res.status, await res.text());
           }
         } else if (provider === "anthropic") {
+          const modelName = clientModel || "claude-3-5-sonnet";
+          const apiModel = modelName === "claude-3-5-sonnet" ? "claude-3-5-sonnet-20241022" 
+                         : modelName === "claude-3-opus" ? "claude-3-opus-20240229" 
+                         : modelName;
           const res = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
@@ -133,7 +139,7 @@ Keep the tone professional, insightful, and detailed. Provide clear actionable c
               "anthropic-version": "2023-06-01",
             },
             body: JSON.stringify({
-              model: "claude-3-5-sonnet-20241022",
+              model: apiModel,
               max_tokens: 1024,
               messages: [{ role: "user", content: prompt }],
             }),
@@ -147,6 +153,10 @@ Keep the tone professional, insightful, and detailed. Provide clear actionable c
             }
           }
         } else if (provider === "groq") {
+          const modelName = clientModel || "llama-3.1-70b";
+          const apiModel = modelName === "llama-3.1-70b" ? "llama-3.1-70b-versatile"
+                         : modelName === "mixtral-8x7b" ? "mixtral-8x7b-32768"
+                         : modelName;
           const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -154,7 +164,7 @@ Keep the tone professional, insightful, and detailed. Provide clear actionable c
               Authorization: `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-              model: "llama-3.1-70b-versatile",
+              model: apiModel,
               messages: [{ role: "user", content: prompt }],
             }),
           });
