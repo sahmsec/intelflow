@@ -118,21 +118,8 @@ export default function ReportsPage() {
       // Finished generating
       const competitor = competitors.find(c => c.id === selectedCompId);
       const competitorName = competitor ? competitor.name : 'Unknown Corp';
-      
-      const fallbackContent = `### Executive Summary
-Our automated intelligence scanner has analyzed public digital signals for **${competitorName}**. Based on recent updates, this competitor is showing high activity indicators in product positioning and pricing.
+      const fallbackContent = `No API key found. Please configure your API key under Settings > AI Providers.`;
 
-### Strategic Threat Assessment
-- **Threat Index:** High (7.8/10)
-- **Primary Action:** The competitor recently adjusted their standard plan pricing. They appear to be offering aggressive discounts to new signups, indicating a potential push to capture mid-market share in the next quarter.
-- **Secondary Action:** Discovered new code deployments indicating they are preparing to launch an automated client onboarding workflow.
-
-### Recommended Counter-Strategy
-1. Coordinate with sales teams to offer customized multi-month billing flexibility on key enterprise accounts.
-2. Promote our superior SSO and custom role management capabilities to highlight enterprise readiness differences.
-3. Keep close track of their upcoming landing page updates via our automated alert channel.
-
-*(Note: Stored AI API Keys were not active. Configure your OpenAI or Gemini key under Settings > AI Providers to generate real-time dynamic AI reports).*`;
 
       const finalContent = apiReportContent || fallbackContent;
 

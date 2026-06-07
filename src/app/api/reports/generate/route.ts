@@ -383,27 +383,9 @@ Keep the tone professional, insightful, and detailed. Provide clear actionable c
 
     // 4. Fallback high-quality template strategy generation
     if (!generatedByAI || !content) {
-      const riskLevel = competitor.riskLevel || "moderate";
-      const activityLevel = competitor.activity || "medium";
-      const threatScore = riskLevel === "critical" ? "8.7/10" : riskLevel === "moderate" ? "6.2/10" : "4.1/10";
-      
-      content = `### Executive Summary
-Our automated intelligence scanner has analyzed public digital signals for **${competitorName}** (URL: ${competitorUrl}) within the **${competitorIndustry}** space. 
-
-Based on recent updates, this competitor is showing **${activityLevel}** activity indicators in product positioning and pricing. We have generated this strategic audit using our fallback intelligence patterns.
-
-### Strategic Threat Assessment
-- **Threat Index:** ${threatScore} (${riskLevel.toUpperCase()} RISK)
-- **Primary Risk Factor:** ${competitorName} is currently optimizing keywords matching our core product features. Their public landing pages show recent metadata updates emphasizing rapid customer onboarding.
-- **Pricing & Positioning:** They appear to be offering competitive incentives to capture mid-market accounts, posing a potential threat to our expansion pipeline in the tech sector.
-
-### Recommended Counter-Strategy
-1. **Sales Collateral Refresh:** Coordinate with sales enablement to highlight our advanced integrations and custom roles, showcasing enterprise readiness.
-2. **Paid Campaign bidding adjustments:** Increase keywords bids on core matching overlaps to maintain search visibility.
-3. **Product Onboarding Optimization:** Improve the new-user dashboard setup wizard to ensure high conversion rates of active trials.
-
-*(Note: Stored AI API Keys were not active. Configure your OpenAI or Gemini key under Settings > AI Providers to generate real-time dynamic AI reports).*`;
+      content = `No API key found. Please configure your API key under Settings > AI Providers.`;
     }
+
 
     // 5. Save report to database
     const dbReport = await db.report.create({
